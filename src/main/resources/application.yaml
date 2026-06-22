@@ -4,7 +4,13 @@ quarkus:
     jar:
       type: uber-jar
   application:
-    name: "pnc-tracking-service"
+    name: "pnc-tracker"
+  container-image:
+    builder: jib
+    registry: quay.io
+    group: rh-newcastle-devel
+    name: pnc-tracker
+    additional-tags: latest
   hibernate-orm:
     schema-management:
       strategy: validate
@@ -14,7 +20,7 @@ quarkus:
       url: ${QUARKUS_DATASOURCE_URL:}
       username: ${QUARKUS_DATASOURCE_USERNAME:}
       password: ${QUARKUS_DATASOURCE_PASSWORD:}
-      # params reccommended for stability:
+      # params recommended for stability:
       min-size: 2
       max-size: 10
       acquisition-timeout: 5s
@@ -36,7 +42,7 @@ quarkus:
         enable: true
       file:
         enable: true
-        path: "/tmp/pnc-tracking-service.log"
+        path: "/tmp/pnc-tracker.log"
         format: "%d{HH:mm:ss} %-5p [%c{2.}] (%t) %s%e%n"
         rotation:
           max-backup-index: 5
