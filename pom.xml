@@ -35,8 +35,8 @@
 
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus-logging-kafka.version>3.0.3</quarkus-logging-kafka.version>
@@ -47,6 +47,9 @@
         <apiVersion>1</apiVersion>
         <pnc-api.version>3.6.0-SNAPSHOT</pnc-api.version>
         <compiler-plugin.version>3.14.0</compiler-plugin.version>
+
+        <jib.base.image.version>1.24-7</jib.base.image.version>
+        <jib.base.image.digest>sha256:5ee73448f86838eecff13f80512b49ff6ea0fa21aaf5d1fa8afe3402fc965e9e</jib.base.image.digest>
     </properties>
 
     <dependencyManagement>
@@ -103,6 +106,12 @@
             <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
 
+        <!-- Quarkus Jib -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-container-image-jib</artifactId>
+        </dependency>
+
         <!-- quarkus otel -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -147,6 +156,11 @@
                     <finalName>pnc-tracker</finalName>
                     <!-- needed to publish to maven central -->
                     <skipOriginalJarRename>true</skipOriginalJarRename>
+                    <systemProperties>
+                        <quarkus.jib.base-jvm-image>
+                            registry.access.redhat.com/ubi10/openjdk-21-runtime:${jib.base.image.version}@${jib.base.image.digest}
+                        </quarkus.jib.base-jvm-image>
+                    </systemProperties>
                 </configuration>
                 <extensions>true</extensions>
                 <executions>
