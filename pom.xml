@@ -106,7 +106,7 @@
         <!-- quarkus otel -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-opentelemetry</artifactId>
+            <artifactId>quarkus-micrometer-opentelemetry</artifactId>
         </dependency>
     </dependencies>
 
