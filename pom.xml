@@ -18,13 +18,22 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>53</version>
+        <relativePath/>
+    </parent>
+
     <groupId>org.jboss.pnc.tracker</groupId>
     <artifactId>pnc-tracker</artifactId>
     <version>3.0.0-SNAPSHOT</version>
+    <inceptionYear>2026</inceptionYear>
+
     <name>PNC :: Tracker</name>
-    <url>https://github.com/project-ncl/pnc-tracker</url>
     <description>PNC Tracker</description>
-    <inceptionYear>2022</inceptionYear>
+    <url>https://github.com/project-ncl/pnc-tracker</url>
 
     <scm>
         <connection>scm:git:https://github.com/project-ncl/pnc-tracker</connection>
@@ -35,8 +44,7 @@
 
     <properties>
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus-logging-kafka.version>3.0.3</quarkus-logging-kafka.version>

@@ -11,6 +11,7 @@ jobs:
       uses: project-ncl/shared-github-actions/.github/workflows/maven-snapshot.yml@c32f5377788ce8ee9dd823babd583c2dd18604da # v0.0.20
       with:
         project_name: 'project-ncl/pnc-tracker'
+        java_version: '25'
         quarkus_jib_image: true
       secrets:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
