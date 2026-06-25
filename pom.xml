@@ -29,7 +29,7 @@
     <groupId>org.jboss.pnc.tracker</groupId>
     <artifactId>pnc-tracker</artifactId>
     <version>3.0.0-SNAPSHOT</version>
-    <inceptionYear>2026</inceptionYear>
+    <inceptionYear>2022</inceptionYear>
 
     <name>PNC :: Tracker</name>
     <description>PNC Tracker</description>
@@ -43,18 +43,18 @@
     </scm>
 
     <properties>
-        <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.release>25</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus-logging-kafka.version>3.0.3</quarkus-logging-kafka.version>
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <maven.compiler.release>21</maven.compiler.release>
+        <jdk.min.version>${maven.compiler.release}</jdk.min.version>
+
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.version>3.30.3</quarkus.platform.version>
 
         <apiVersion>1</apiVersion>
         <pnc-api.version>3.6.0-SNAPSHOT</pnc-api.version>
-        <compiler-plugin.version>3.14.0</compiler-plugin.version>
 
         <jib.base.image.version>1.24-7</jib.base.image.version>
         <jib.base.image.digest>sha256:5ee73448f86838eecff13f80512b49ff6ea0fa21aaf5d1fa8afe3402fc965e9e</jib.base.image.digest>
@@ -154,13 +154,6 @@
         </resources>
         <plugins>
             <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${compiler-plugin.version}</version>
-                <configuration>
-                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>io.quarkus.platform</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus.platform.version}</version>
@@ -198,23 +191,6 @@
                         <phase>initialize</phase>
                         <configuration>
                             <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.1</version>
-                <executions>
-                    <execution>
-                        <id>buildnumbers</id>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                        <configuration>
-                            <timestampFormat>{0,date,yyyy-MM-dd HH:mm Z}</timestampFormat>
                         </configuration>
                     </execution>
                 </executions>
