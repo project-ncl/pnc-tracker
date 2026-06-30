@@ -59,27 +59,29 @@ public class ReportService {
      * Retrieves entries for a specified tracking report, optionally filtered by {@link StoreEffect}.
      * <p>
      * This method verifies the existence of the report before fetching the entries. If the report does not exist, a
-     * {@link ReportNotFoundException} is thrown.
+     * {@link ReportNotFoundException} is thrown. It also checks the report status and only allows reading entries in a
+     * sealed report. In case of any other status a {@link ReportInvalidStateException} is thrown.
      * </p>
      *
      * @param trackingId the unique identifier of the report.
      * @param effect the optional {@link StoreEffect} to filter by; pass {@code null} to retrieve all entries.
      * @return a {@link List} of {@link DbTrackedEntry} entities associated with the report.
      * @throws ReportNotFoundException if no report is found for the given {@code trackingId}.
+     * @throws ReportInvalidStateException if the report state is not {@link TrackingReportState#SEALED}
      */
     public List<DbTrackedEntry> getEntriesDetached(String trackingId, StoreEffect effect) {
         // 1. Check if the report exists to ensure 404 behaviour if missing
         DbTrackingReport report = getReport(trackingId);
 
         // Enforce state-based access control
-        if (report.state != TrackingReportState.IN_PROGRESS) {
+        if (report.state != TrackingReportState.SEALED) {
             throw new ReportInvalidStateException(
                     "Cannot read entries for report: %s because its state is: %s.",
                     trackingId,
                     report.state);
         }
         // 2. Fetch the data using the optimized stateless approach
-        return DbTrackedEntry.getEntriesForReportDetached(trackingId, effect);
+        return DbTrackedEntry.findDetached(trackingId, effect);
     }
 
     /**

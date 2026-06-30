@@ -144,22 +144,15 @@ public class DbTrackedEntry extends PanacheEntity {
      * @param effect the optional {@link StoreEffect} to filter by; pass {@code null} to retrieve all.
      * @return a {@link List} of detached {@link DbTrackedEntry} entities.
      */
-    public static List<DbTrackedEntry> getEntriesForReportDetached(String trackingId, StoreEffect effect) {
-        String hql = "FROM DbTrackedEntry e WHERE e.trackingId = :id";
-        if (effect != null) {
-            hql += " AND e.storeEffect = :effect";
-        }
-
-        Query<DbTrackedEntry> query = Panache.getEntityManager().unwrap(Session.class)
+    public static List<DbTrackedEntry> findDetached(String trackingId, StoreEffect effect) {
+        return Panache.getEntityManager().unwrap(Session.class)
                 .getSessionFactory()
                 .openStatelessSession()
-                .createQuery(hql, DbTrackedEntry.class)
-                .setParameter("id", trackingId);
-
-        if (effect != null) {
-            query.setParameter("effect", effect);
-        }
-
-        return query.getResultList();
+                .createQuery(
+                        "FROM DbTrackedEntry e WHERE e.trackingId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
+                        DbTrackedEntry.class)
+                .setParameter("id", trackingId)
+                .setParameter("effect", effect) // Hibernate 6 can handle null
+                .getResultList();
     }
 }
