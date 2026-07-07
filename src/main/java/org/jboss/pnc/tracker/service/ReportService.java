@@ -6,6 +6,7 @@ import org.jboss.pnc.tracker.exception.ReportNotFoundException;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
 import org.jboss.pnc.tracker.model.StoreEffect;
+import org.jboss.pnc.tracker.model.TrackedEntryProjection;
 import org.jboss.pnc.tracker.model.TrackingReportState;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 /**
@@ -33,6 +35,9 @@ import jakarta.transaction.Transactional;
 public class ReportService {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Inject
+    RepositoryCache repositoryCache;
 
     /**
      * Retrieves a tracking report by its unique key.
@@ -65,11 +70,11 @@ public class ReportService {
      *
      * @param trackingId the unique identifier of the report.
      * @param effect the optional {@link StoreEffect} to filter by; pass {@code null} to retrieve all entries.
-     * @return a {@link List} of {@link DbTrackedEntry} entities associated with the report.
+     * @return a {@link List} of {@link TrackedEntryProjection} entities associated with the report.
      * @throws ReportNotFoundException if no report is found for the given {@code trackingId}.
      * @throws ReportInvalidStateException if the report state is not {@link TrackingReportState#SEALED}
      */
-    public List<DbTrackedEntry> getEntriesDetached(String trackingId, StoreEffect effect) {
+    public List<TrackedEntryProjection> findEntries(String trackingId, StoreEffect effect) {
         // 1. Check if the report exists to ensure 404 behaviour if missing
         DbTrackingReport report = getReport(trackingId);
 
@@ -81,7 +86,7 @@ public class ReportService {
                     report.state);
         }
         // 2. Fetch the data using the optimized stateless approach
-        return DbTrackedEntry.findDetached(trackingId, effect);
+        return DbTrackedEntry.findDetachedWithRepo(trackingId, effect);
     }
 
     /**
@@ -123,11 +128,16 @@ public class ReportService {
      * </p>
      *
      * @param entry the transient tracking entry to persist
+     * @param project project in Artifactory
+     * @param repoName repository name in Artifactory
      * @throws ReportNotFoundException if the report does not exist
      * @throws ReportInvalidStateException if the report is sealed or corrupted
      */
     @Transactional
-    public void trackEntry(DbTrackedEntry entry) {
+    public void trackEntry(DbTrackedEntry entry, String project, String repoName) {
+        Long repoId = repositoryCache.getOrCreateRepositoryId(project, repoName);
+        entry.repositoryId = repoId;
+
         // ultra-fast conditional persist
         boolean success = entry.persistIfActive();
 

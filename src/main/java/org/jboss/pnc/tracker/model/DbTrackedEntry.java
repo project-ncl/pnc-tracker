@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 
 import io.quarkus.hibernate.orm.panache.Panache;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
@@ -43,11 +42,13 @@ public class DbTrackedEntry extends PanacheEntity {
     @Column(
             name = "tracking_id",
             nullable = false,
-            columnDefinition = "VARCHAR(128) REFERENCES dbtrackingreport(tracking_id)")
+            columnDefinition = "VARCHAR(128) REFERENCES tracking_report(tracking_id)")
     public String trackingId;
 
-    @Column(name = "repository_id")
-    public String repositoryId;
+    @Column(name = "repository_id",
+            nullable = false,
+            columnDefinition = "BIGINT REFERENCES repository(id)")
+    public Long repositoryId;
 
     @Column(name = "path")
     public String path;
@@ -61,11 +62,11 @@ public class DbTrackedEntry extends PanacheEntity {
     @Column(name = "md5")
     public String md5;
 
-    @Column(name = "sha256")
-    public String sha256;
-
     @Column(name = "sha1")
     public String sha1;
+
+    @Column(name = "sha256")
+    public String sha256;
 
     @Column(name = "size")
     public Long size;
@@ -78,7 +79,7 @@ public class DbTrackedEntry extends PanacheEntity {
 
     public DbTrackedEntry(
             String trackingId,
-            String repositoryId,
+            Long repositoryId,
             String path,
             String originUrl,
             StoreEffect storeEffect,
@@ -144,13 +145,18 @@ public class DbTrackedEntry extends PanacheEntity {
      * @param effect the optional {@link StoreEffect} to filter by; pass {@code null} to retrieve all.
      * @return a {@link List} of detached {@link DbTrackedEntry} entities.
      */
-    public static List<DbTrackedEntry> findDetached(String trackingId, StoreEffect effect) {
-        return Panache.getEntityManager().unwrap(Session.class)
+    public static List<TrackedEntryProjection> findDetachedWithRepo(String trackingId, StoreEffect effect) {
+        return Panache.getEntityManager()
+                .unwrap(Session.class)
                 .getSessionFactory()
                 .openStatelessSession()
                 .createQuery(
-                        "FROM DbTrackedEntry e WHERE e.trackingId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
-                        DbTrackedEntry.class)
+                        "SELECT new org.jboss.pnc.tracker.model.TrackedEntryProjection("
+                                + "  e.trackingId, m.project, m.name, m.packageType, e.path, e.originUrl,"
+                                + " e.storeEffect, e.md5, e.sha1, e.sha256, e.size, e.timestamp" + ") "
+                                + "FROM DbTrackedEntry e JOIN DbRepository m ON e.repositoryId = m.id "
+                                + "WHERE e.trackingId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
+                        TrackedEntryProjection.class)
                 .setParameter("id", trackingId)
                 .setParameter("effect", effect) // Hibernate 6 can handle null
                 .getResultList();
