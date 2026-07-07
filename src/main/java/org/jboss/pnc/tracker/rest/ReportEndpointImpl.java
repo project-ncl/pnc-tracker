@@ -16,15 +16,18 @@
 package org.jboss.pnc.tracker.rest;
 
 import org.jboss.pnc.api.dto.RepositoryId;
+import org.jboss.pnc.api.tracker.dto.PackageType;
 import org.jboss.pnc.api.tracker.dto.TrackDownloadRequest;
 import org.jboss.pnc.api.tracker.dto.TrackUploadRequest;
 import org.jboss.pnc.api.tracker.dto.TrackedArtifact;
 import org.jboss.pnc.api.tracker.dto.TrackedEntry;
 import org.jboss.pnc.api.tracker.dto.TrackingReport;
 import org.jboss.pnc.api.tracker.rest.ReportEndpoint;
+import org.jboss.pnc.tracker.model.DbPackageType;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
 import org.jboss.pnc.tracker.model.StoreEffect;
+import org.jboss.pnc.tracker.model.TrackedEntryProjection;
 import org.jboss.pnc.tracker.model.TrackingReportState;
 import org.jboss.pnc.tracker.service.ReportService;
 
@@ -84,7 +87,8 @@ public class ReportEndpointImpl implements ReportEndpoint {
         DbTrackedEntry entry = mapToEntity(trackingId, request);
         entry.storeEffect = StoreEffect.UPLOAD;
 
-        reportService.trackEntry(entry);
+        RepositoryId repoId = request.getRepoId();
+        reportService.trackEntry(entry, repoId.getProject(), repoId.getName());
     }
 
     @Override
@@ -93,7 +97,8 @@ public class ReportEndpointImpl implements ReportEndpoint {
         entry.originUrl = request.getOriginUrl();
         entry.storeEffect = StoreEffect.DOWNLOAD;
 
-        reportService.trackEntry(entry);
+        RepositoryId repoId = request.getRepoId();
+        reportService.trackEntry(entry, repoId.getProject(), repoId.getName());
     }
 
     /**
@@ -106,7 +111,6 @@ public class ReportEndpointImpl implements ReportEndpoint {
     private DbTrackedEntry mapToEntity(String trackingId, TrackedArtifact request) {
         DbTrackedEntry entry = new DbTrackedEntry();
         entry.trackingId = trackingId;
-        entry.repositoryId = request.getRepoId().getPath();
         entry.path = request.getPath();
         entry.md5 = request.getMd5();
         entry.sha1 = request.getSha1();
@@ -129,19 +133,19 @@ public class ReportEndpointImpl implements ReportEndpoint {
         if (report.state != TrackingReportState.SEALED) {
             throw new WebApplicationException("Report is not sealed", Response.Status.CONFLICT);
         }
-        List<DbTrackedEntry> entries = reportService.getEntriesDetached(trackingId, null);
+        List<TrackedEntryProjection> entries = reportService.findEntries(trackingId, null);
         return buildDto(trackingId, entries);
     }
 
-    private TrackingReport buildDto(String trackingId, List<DbTrackedEntry> entries) {
+    private TrackingReport buildDto(String trackingId, List<TrackedEntryProjection> entries) {
         TrackingReport dto = TrackingReport.builder()
                 .trackingID(trackingId)
                 .uploads(entries.stream()
-                        .filter(e -> e.storeEffect == StoreEffect.UPLOAD)
+                        .filter(e -> e.storeEffect() == StoreEffect.UPLOAD)
                         .map(this::toEntryDto)
                         .collect(Collectors.toSet()))
                 .downloads(entries.stream()
-                        .filter(e -> e.storeEffect == StoreEffect.DOWNLOAD)
+                        .filter(e -> e.storeEffect() == StoreEffect.DOWNLOAD)
                         .map(this::toEntryDto)
                         .collect(Collectors.toSet()))
                 .build();
@@ -149,16 +153,35 @@ public class ReportEndpointImpl implements ReportEndpoint {
         return dto;
     }
 
-    private TrackedEntry toEntryDto(DbTrackedEntry entry) {
-        return TrackedEntry.builder()
-                .repoId(RepositoryId.parse(entry.repositoryId))
-                .path(entry.path)
-                .md5(entry.md5)
-                .sha1(entry.sha1)
-                .sha256(entry.sha256)
-                .size(entry.size)
-                .timestamp(toLong(entry.timestamp))
+    private TrackedEntry toEntryDto(TrackedEntryProjection p) {
+        PackageType packageType = mapPackageType(p.packageType());
+        RepositoryId repoId = RepositoryId.builder()
+                .project(p.project())
+                .name(p.name())
+                .packageType(packageType)
                 .build();
+        return TrackedEntry.builder()
+                .repoId(repoId)
+                .path(p.path())
+                .md5(p.md5())
+                .sha1(p.sha1())
+                .sha256(p.sha256())
+                .size(p.size())
+                .timestamp(toLong(p.timestamp()))
+                .build();
+    }
+
+    private PackageType mapPackageType(DbPackageType dbType) {
+        if (dbType == null) {
+            return null;
+        }
+        return switch (dbType) {
+            case MAVEN -> PackageType.MAVEN;
+            case NPM -> PackageType.NPM;
+            //case RPM -> PackageType.RPM;
+            case GENERIC -> PackageType.GENERIC;
+            default -> throw new IllegalArgumentException("PackageType doesn't have matching value for: " + dbType);
+        };
     }
 
     private Long toLong(LocalDateTime dateTime) {
@@ -175,9 +198,9 @@ public class ReportEndpointImpl implements ReportEndpoint {
         }
 
         // Fetch detached entries and project only the 'path' field
-        return reportService.getEntriesDetached(trackingId, StoreEffect.UPLOAD)
+        return reportService.findEntries(trackingId, StoreEffect.UPLOAD)
                 .stream()
-                .map(entry -> entry.path)
+                .map(entry -> entry.path())
                 .toList();
     }
 
