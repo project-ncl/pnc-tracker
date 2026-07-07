@@ -8,15 +8,15 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class StoreEffectConverter implements AttributeConverter<StoreEffect, String> {
+public class DbTrackingReportStateConverter implements AttributeConverter<DbTrackingReportState, String> {
 
     @Override
-    public String convertToDatabaseColumn(StoreEffect attribute) {
+    public String convertToDatabaseColumn(DbTrackingReportState attribute) {
         return attribute == null ? null : attribute.getDbCode();
     }
 
     @Override
-    public StoreEffect convertToEntityAttribute(String dbData) {
-        return dbData == null ? null : StoreEffect.fromDbCode(dbData);
+    public DbTrackingReportState convertToEntityAttribute(String dbData) {
+        return dbData == null ? null : DbTrackingReportState.fromDbCode(dbData);
     }
 }

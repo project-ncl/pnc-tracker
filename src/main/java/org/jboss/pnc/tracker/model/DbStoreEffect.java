@@ -4,13 +4,13 @@
  */
 package org.jboss.pnc.tracker.model;
 
-public enum StoreEffect {
+public enum DbStoreEffect {
     UPLOAD("U"),
     DOWNLOAD("D");
 
     private final String dbCode;
 
-    StoreEffect(String dbCode) {
+    DbStoreEffect(String dbCode) {
         this.dbCode = dbCode;
     }
 
@@ -18,7 +18,7 @@ public enum StoreEffect {
         return dbCode;
     }
 
-    public static StoreEffect fromDbCode(String dbCode) {
+    public static DbStoreEffect fromDbCode(String dbCode) {
         if ("U".equals(dbCode)) {
             return UPLOAD;
         }

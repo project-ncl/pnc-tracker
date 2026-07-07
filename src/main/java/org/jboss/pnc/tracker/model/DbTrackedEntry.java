@@ -46,7 +46,7 @@ public class DbTrackedEntry extends PanacheEntity {
     public String originUrl;
 
     @Column(name = "store_effect", columnDefinition = "char(1)")
-    public StoreEffect storeEffect;
+    public DbStoreEffect storeEffect;
 
     @Column(name = "md5")
     public String md5;
@@ -71,7 +71,7 @@ public class DbTrackedEntry extends PanacheEntity {
             Long repositoryId,
             String path,
             String originUrl,
-            StoreEffect storeEffect,
+            DbStoreEffect storeEffect,
             String md5,
             String sha256,
             String sha1,
@@ -121,7 +121,7 @@ public class DbTrackedEntry extends PanacheEntity {
 
     /**
      * Retrieves entries for a given report as detached entities using a stateless session. Optionally filters by
-     * {@link StoreEffect}.
+     * {@link DbStoreEffect}.
      * <p>
      * This bypasses the Hibernate Persistence Context, making it efficient for read-only access to large volumes of
      * data.
@@ -131,10 +131,10 @@ public class DbTrackedEntry extends PanacheEntity {
      * </p>
      *
      * @param trackingId the unique identifier of the report.
-     * @param effect the optional {@link StoreEffect} to filter by; pass {@code null} to retrieve all.
+     * @param effect the optional {@link DbStoreEffect} to filter by; pass {@code null} to retrieve all.
      * @return a {@link List} of detached {@link DbTrackedEntry} entities.
      */
-    public static List<TrackedEntryProjection> findDetachedWithRepo(String trackingId, StoreEffect effect) {
+    public static List<TrackedEntryProjection> findDetachedWithRepo(String trackingId, DbStoreEffect effect) {
         return Panache.getEntityManager()
                 .unwrap(Session.class)
                 .getSessionFactory()

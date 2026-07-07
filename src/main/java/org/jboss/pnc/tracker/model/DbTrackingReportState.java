@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public enum TrackingReportState {
+public enum DbTrackingReportState {
 
     IN_PROGRESS("I"),
     SEALED("S"),
@@ -18,10 +18,10 @@ public enum TrackingReportState {
     private final String dbCode;
 
     // Static Map initialized only once when the class is loaded by JVM
-    private static final Map<String, TrackingReportState> BY_CODE = Arrays.stream(values())
-            .collect(Collectors.toMap(TrackingReportState::getDbCode, Function.identity()));
+    private static final Map<String, DbTrackingReportState> BY_CODE = Arrays.stream(values())
+            .collect(Collectors.toMap(DbTrackingReportState::getDbCode, Function.identity()));
 
-    TrackingReportState(String dbCode) {
+    DbTrackingReportState(String dbCode) {
         this.dbCode = dbCode;
     }
 
@@ -29,8 +29,8 @@ public enum TrackingReportState {
         return dbCode;
     }
 
-    public static TrackingReportState fromDbCode(String dbCode) {
-        TrackingReportState state = BY_CODE.get(dbCode);
+    public static DbTrackingReportState fromDbCode(String dbCode) {
+        DbTrackingReportState state = BY_CODE.get(dbCode);
         if (state == null) {
             throw new IllegalArgumentException("Unknown DB code for TrackingReportState: " + dbCode);
         }
