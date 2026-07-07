@@ -1,3 +1,7 @@
+/*
+ * Copyright 2022-2026 Red Hat, Inc.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package org.jboss.pnc.tracker.service;
 
 import org.jboss.pnc.tracker.model.DbPackageType;
