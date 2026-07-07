@@ -13,7 +13,7 @@ public record TrackedEntryProjection(
     DbPackageType packageType,
     String path,
     String originUrl,
-    StoreEffect storeEffect,
+    DbStoreEffect storeEffect,
     String md5,
     String sha1,
     String sha256,

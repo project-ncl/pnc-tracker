@@ -9,9 +9,9 @@ import org.jboss.pnc.tracker.exception.ReportInvalidStateException;
 import org.jboss.pnc.tracker.exception.ReportNotFoundException;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
-import org.jboss.pnc.tracker.model.StoreEffect;
+import org.jboss.pnc.tracker.model.DbStoreEffect;
 import org.jboss.pnc.tracker.model.TrackedEntryProjection;
-import org.jboss.pnc.tracker.model.TrackingReportState;
+import org.jboss.pnc.tracker.model.DbTrackingReportState;
 
 import java.util.List;
 
@@ -65,7 +65,7 @@ public class ReportService {
     }
 
     /**
-     * Retrieves entries for a specified tracking report, optionally filtered by {@link StoreEffect}.
+     * Retrieves entries for a specified tracking report, optionally filtered by {@link DbStoreEffect}.
      * <p>
      * This method verifies the existence of the report before fetching the entries. If the report does not exist, a
      * {@link ReportNotFoundException} is thrown. It also checks the report status and only allows reading entries in a
@@ -73,17 +73,17 @@ public class ReportService {
      * </p>
      *
      * @param trackingId the unique identifier of the report.
-     * @param effect the optional {@link StoreEffect} to filter by; pass {@code null} to retrieve all entries.
+     * @param effect the optional {@link DbStoreEffect} to filter by; pass {@code null} to retrieve all entries.
      * @return a {@link List} of {@link TrackedEntryProjection} entities associated with the report.
      * @throws ReportNotFoundException if no report is found for the given {@code trackingId}.
-     * @throws ReportInvalidStateException if the report state is not {@link TrackingReportState#SEALED}
+     * @throws ReportInvalidStateException if the report state is not {@link DbTrackingReportState#SEALED}
      */
-    public List<TrackedEntryProjection> findEntries(String trackingId, StoreEffect effect) {
+    public List<TrackedEntryProjection> findEntries(String trackingId, DbStoreEffect effect) {
         // 1. Check if the report exists to ensure 404 behaviour if missing
         DbTrackingReport report = getReport(trackingId);
 
         // Enforce state-based access control
-        if (report.state != TrackingReportState.SEALED) {
+        if (report.state != DbTrackingReportState.SEALED) {
             throw new ReportInvalidStateException(
                     "Cannot read entries for report: %s because its state is: %s.",
                     trackingId,
@@ -96,7 +96,7 @@ public class ReportService {
     /**
      * Seals an existing tracking report to prevent any further entries from being added.
      * <p>
-     * This operation is idempotent. If the report is already in the {@link TrackingReportState#SEALED}
+     * This operation is idempotent. If the report is already in the {@link DbTrackingReportState#SEALED}
      * state, the method logs a debug message and returns the report immediately without
      * modifying the database. Otherwise, it transitions the report's state to {@code SEALED}
      * and persists the changes.
@@ -109,16 +109,16 @@ public class ReportService {
     public DbTrackingReport sealReport(String trackingId) {
         DbTrackingReport trackingRecord = getReport(trackingId);
 
-        if (trackingRecord.state == TrackingReportState.SEALED) {
+        if (trackingRecord.state == DbTrackingReportState.SEALED) {
             logger.debug("Tracking report: {} already sealed! Returning sealed record.", trackingId);
             return trackingRecord;
         }
-        if (trackingRecord.state == TrackingReportState.CORRUPTED) {
+        if (trackingRecord.state == DbTrackingReportState.CORRUPTED) {
             throw new ReportDataConflictException(
                     "Tracking report: {} is CORRUPTED, so it cannot be sealed!", trackingId);
         }
         logger.debug("Sealing record for: {}", trackingId);
-        trackingRecord.state = TrackingReportState.SEALED;
+        trackingRecord.state = DbTrackingReportState.SEALED;
         DbTrackingReport.persist(trackingRecord);
 
         return trackingRecord;
@@ -160,15 +160,15 @@ public class ReportService {
             throw new ReportNotFoundException("Tracking report not found: %s", entry.trackingId);
         }
 
-        if (report.state == TrackingReportState.SEALED) {
+        if (report.state == DbTrackingReportState.SEALED) {
             throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.trackingId);
         }
 
-        if (report.state == TrackingReportState.CORRUPTED) {
+        if (report.state == DbTrackingReportState.CORRUPTED) {
             throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.trackingId);
         }
 
-        if (report.state == TrackingReportState.IN_PROGRESS) {
+        if (report.state == DbTrackingReportState.IN_PROGRESS) {
             logger.debug(
                     "Entry for path {} in repository {} already exists in report {}. Skipping duplicate.",
                     entry.path,
@@ -180,8 +180,8 @@ public class ReportService {
     /**
      * Initialises a new tracking report.
      * <p>
-     * If a report with the given ID does not exist, a new one is created in {@link TrackingReportState#IN_PROGRESS}.
-     * If it exists and is in {@link TrackingReportState#IN_PROGRESS} with no entries, the operation is skipped.
+     * If a report with the given ID does not exist, a new one is created in {@link DbTrackingReportState#IN_PROGRESS}.
+     * If it exists and is in {@link DbTrackingReportState#IN_PROGRESS} with no entries, the operation is skipped.
      * If it exists but contains entries, or is in a terminal state (SEALED, CORRUPTED), a conflict exception is thrown.
      * </p>
      *
@@ -195,12 +195,12 @@ public class ReportService {
         if (existingReport == null) {
             DbTrackingReport newReport = new DbTrackingReport();
             newReport.trackingId = trackingId;
-            newReport.state = TrackingReportState.IN_PROGRESS;
+            newReport.state = DbTrackingReportState.IN_PROGRESS;
             newReport.persist();
             logger.info("New tracking report {} initialized.", trackingId);
         } else {
             // Handle existing report logic
-            if (existingReport.state != TrackingReportState.IN_PROGRESS) {
+            if (existingReport.state != DbTrackingReportState.IN_PROGRESS) {
                 throw new ReportDataConflictException("Report %s is in terminal state: %s",
                         trackingId, existingReport.state);
             }
@@ -221,10 +221,10 @@ public class ReportService {
      * only identifiers for reports matching the specified state are retrieved.
      * </p>
      *
-     * @param state the {@link TrackingReportState} to filter by, or {@code null} to retrieve all available identifiers.
+     * @param state the {@link DbTrackingReportState} to filter by, or {@code null} to retrieve all available identifiers.
      * @return a {@link List} of tracking identifier strings.
      */
-    public List<String> getTrackingIds(TrackingReportState state) {
+    public List<String> getTrackingIds(DbTrackingReportState state) {
         if (state == null) {
             return DbTrackingReport.findAllKeys();
         } else {

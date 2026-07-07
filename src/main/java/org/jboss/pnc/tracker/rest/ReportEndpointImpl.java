@@ -15,9 +15,9 @@ import org.jboss.pnc.api.tracker.rest.ReportEndpoint;
 import org.jboss.pnc.tracker.model.DbPackageType;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
-import org.jboss.pnc.tracker.model.StoreEffect;
+import org.jboss.pnc.tracker.model.DbStoreEffect;
 import org.jboss.pnc.tracker.model.TrackedEntryProjection;
-import org.jboss.pnc.tracker.model.TrackingReportState;
+import org.jboss.pnc.tracker.model.DbTrackingReportState;
 import org.jboss.pnc.tracker.service.ReportService;
 
 import java.time.LocalDateTime;
@@ -41,22 +41,22 @@ public class ReportEndpointImpl implements ReportEndpoint {
 
     @Override
     public List<String> getAllIds(String strState) {
-        TrackingReportState state = getRequiredState(strState);
+        DbTrackingReportState state = getRequiredState(strState);
         List<String> ids = reportService.getTrackingIds(state);
         return ids;
     }
 
-    private TrackingReportState getRequiredState(String strState) {
-        TrackingReportState state = null;
+    private DbTrackingReportState getRequiredState(String strState) {
+        DbTrackingReportState state = null;
 
-        if (TrackingReportState.IN_PROGRESS.name().equalsIgnoreCase(strState)) {
-            state = TrackingReportState.IN_PROGRESS;
+        if (DbTrackingReportState.IN_PROGRESS.name().equalsIgnoreCase(strState)) {
+            state = DbTrackingReportState.IN_PROGRESS;
         }
-        if (TrackingReportState.SEALED.name().equalsIgnoreCase(strState)) {
-            state = TrackingReportState.SEALED;
+        if (DbTrackingReportState.SEALED.name().equalsIgnoreCase(strState)) {
+            state = DbTrackingReportState.SEALED;
         }
-        if (TrackingReportState.CORRUPTED.name().equalsIgnoreCase(strState)) {
-            state = TrackingReportState.CORRUPTED;
+        if (DbTrackingReportState.CORRUPTED.name().equalsIgnoreCase(strState)) {
+            state = DbTrackingReportState.CORRUPTED;
         }
 
         if (state == null && !"all".equalsIgnoreCase(strState)) {
@@ -74,7 +74,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     @Override
     public void trackUpload(String trackingId, TrackUploadRequest request) {
         DbTrackedEntry entry = mapToEntity(trackingId, request);
-        entry.storeEffect = StoreEffect.UPLOAD;
+        entry.storeEffect = DbStoreEffect.UPLOAD;
 
         RepositoryId repoId = request.getRepoId();
         reportService.trackEntry(entry, repoId.getProject(), repoId.getName());
@@ -84,7 +84,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     public void trackDownload(String trackingId, TrackDownloadRequest request) {
         DbTrackedEntry entry = mapToEntity(trackingId, request);
         entry.originUrl = request.getOriginUrl();
-        entry.storeEffect = StoreEffect.DOWNLOAD;
+        entry.storeEffect = DbStoreEffect.DOWNLOAD;
 
         RepositoryId repoId = request.getRepoId();
         reportService.trackEntry(entry, repoId.getProject(), repoId.getName());
@@ -119,7 +119,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
         DbTrackingReport report = reportService.getReport(trackingId);
 
         // State check
-        if (report.state != TrackingReportState.SEALED) {
+        if (report.state != DbTrackingReportState.SEALED) {
             throw new WebApplicationException("Report is not sealed", Response.Status.CONFLICT);
         }
         List<TrackedEntryProjection> entries = reportService.findEntries(trackingId, null);
@@ -130,11 +130,11 @@ public class ReportEndpointImpl implements ReportEndpoint {
         TrackingReport dto = TrackingReport.builder()
                 .trackingID(trackingId)
                 .uploads(entries.stream()
-                        .filter(e -> e.storeEffect() == StoreEffect.UPLOAD)
+                        .filter(e -> e.storeEffect() == DbStoreEffect.UPLOAD)
                         .map(this::toEntryDto)
                         .collect(Collectors.toSet()))
                 .downloads(entries.stream()
-                        .filter(e -> e.storeEffect() == StoreEffect.DOWNLOAD)
+                        .filter(e -> e.storeEffect() == DbStoreEffect.DOWNLOAD)
                         .map(this::toEntryDto)
                         .collect(Collectors.toSet()))
                 .build();
@@ -182,12 +182,12 @@ public class ReportEndpointImpl implements ReportEndpoint {
         DbTrackingReport report = reportService.getReport(trackingId);
 
         // State check
-        if (report.state != TrackingReportState.SEALED) {
+        if (report.state != DbTrackingReportState.SEALED) {
             throw new WebApplicationException("Report is not sealed", Response.Status.CONFLICT);
         }
 
         // Fetch detached entries and project only the 'path' field
-        return reportService.findEntries(trackingId, StoreEffect.UPLOAD)
+        return reportService.findEntries(trackingId, DbStoreEffect.UPLOAD)
                 .stream()
                 .map(entry -> entry.path())
                 .toList();

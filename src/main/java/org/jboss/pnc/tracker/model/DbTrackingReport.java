@@ -28,7 +28,7 @@ public class DbTrackingReport extends PanacheEntityBase {
     public String trackingId;
 
     @Column(name = "state", columnDefinition = "char(1)")
-    public TrackingReportState state;
+    public DbTrackingReportState state;
 
     public DbTrackingReport() {
     }
@@ -63,7 +63,7 @@ public class DbTrackingReport extends PanacheEntityBase {
      * @param state the report state to filter by (e.g., IN_PROGRESS, SEALED, CORRUPTED)
      * @return a list of matching tracking keys, or an empty list if no reports match the criteria
      */
-    public static List<String> findKeysByType(TrackingReportState state) {
+    public static List<String> findKeysByType(DbTrackingReportState state) {
         return getEntityManager()
                 .createQuery("SELECT r.trackingId FROM DbTrackingReport r WHERE r.state = ?1", String.class)
                 .setParameter(1, state)
