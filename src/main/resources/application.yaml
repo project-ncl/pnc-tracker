@@ -28,6 +28,8 @@ quarkus:
     pnc-api:
       group-id: org.jboss.pnc
       artifact-id: pnc-api
+  swagger-ui:
+    always-include: true
 
 "%dev":
   quarkus:
@@ -36,7 +38,7 @@ quarkus:
     log:
       level: INFO
       category:
-        "org.jboss.pnc.service.tracking":
+        "org.jboss.pnc.tracker":
           level: DEBUG
       console:
         enable: true
@@ -53,7 +55,7 @@ quarkus:
     log:
       level: INFO
       category:
-        "org.jboss.pnc.service.tracking":
+        "org.jboss.pnc.tracker":
           level: DEBUG
       console:
         enable: true

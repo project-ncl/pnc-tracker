@@ -2,21 +2,21 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Indy Tracking Service</title>
+    <title>PNC Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
 <div class="container">
-    <h1>Indy Tracking Service</h1>
+    <h1>PNC Tracker</h1>
     <hr/>
 
 
     <div class="cards">
         <div class="card">
             <h5 class="card-header">About</h5>
-            <p class="card-body"><b>Indy Tracking Service</b> provides REST endpoints for admin operations
-                related to tracking Indy artifacts.</p>
+            <p class="card-body"><b>PNC Tracker</b> provides REST endpoints for admin operations
+                related to tracking artifacts.</p>
         </div>
 
         <div class="card">
@@ -28,7 +28,7 @@
     </div>
 
     <div id="prj-stats" style="position: fixed; bottom: 5%; text-align: center;">
-        <span><a target="_new" class="fa fa-btn" href="http://github.com/commonjava/indy-tracking-service/issues">Issues</a></span>
+        <span><a target="_new" class="fa fa-btn" href="http://github.com/project-ncl/pnc-tracker/issues">Issues</a></span>
         | <span>Version:</span> <span id="stats-ver"></span>
         | <span>Commit ID:</span> <span><a id="stats-cid" target="_new" class="fa fa-btn" href="">{{stats["commit-id"]}}</a></span>
         | <span>Built</span> <span id="stats-author">on {{stats["timestamp"]}} by </span>
