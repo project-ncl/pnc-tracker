@@ -51,7 +51,7 @@
 
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>3.30.3</quarkus.platform.version>
+        <quarkus.platform.version>3.37.1</quarkus.platform.version>
 
         <apiVersion>1</apiVersion>
         <pnc-api.version>3.6.0-SNAPSHOT</pnc-api.version>
