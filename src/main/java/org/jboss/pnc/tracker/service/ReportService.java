@@ -57,11 +57,11 @@ public class ReportService {
      * @throws ReportNotFoundException if no tracking report exists with the specified key
      */
     public DbTrackingReport getReport(String trackingId) {
-        DbTrackingReport trackingRecord = DbTrackingReport.findByKey(trackingId);
-        if (trackingRecord == null) {
+        DbTrackingReport trackingReport = DbTrackingReport.findByKey(trackingId);
+        if (trackingReport == null) {
             throw new ReportNotFoundException("Tracking report with ID %s was not found.", trackingId);
         }
-        return trackingRecord;
+        return trackingReport;
     }
 
     /**
@@ -107,21 +107,26 @@ public class ReportService {
      * @throws ReportNotFoundException if no tracking report exists with the specified key (thrown via {@link #getReport(String)})
      */
     public DbTrackingReport sealReport(String trackingId) {
-        DbTrackingReport trackingRecord = getReport(trackingId);
+        DbTrackingReport trackingReport = getReport(trackingId);
 
-        if (trackingRecord.state == DbTrackingReportState.SEALED) {
-            logger.debug("Tracking report: {} already sealed! Returning sealed record.", trackingId);
-            return trackingRecord;
+        if (trackingReport.state == DbTrackingReportState.SEALED) {
+            logger.debug("Tracking report: {} already sealed! Returning sealed report.", trackingId);
+            return trackingReport;
         }
-        if (trackingRecord.state == DbTrackingReportState.CORRUPTED) {
+        if (trackingReport.state == DbTrackingReportState.CORRUPTED) {
             throw new ReportDataConflictException(
                     "Tracking report: {} is CORRUPTED, so it cannot be sealed!", trackingId);
         }
-        logger.debug("Sealing record for: {}", trackingId);
-        trackingRecord.state = DbTrackingReportState.SEALED;
-        DbTrackingReport.persist(trackingRecord);
+        doSealReport(trackingReport);
 
-        return trackingRecord;
+        return trackingReport;
+    }
+
+    @Transactional
+    public void doSealReport(DbTrackingReport trackingReport) {
+        logger.debug("Sealing report for: {}", trackingReport.trackingId);
+        trackingReport.state = DbTrackingReportState.SEALED;
+        DbTrackingReport.persist(trackingReport);
     }
 
     /**
