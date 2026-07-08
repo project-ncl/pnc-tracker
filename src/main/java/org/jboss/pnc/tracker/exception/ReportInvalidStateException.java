@@ -8,7 +8,7 @@ package org.jboss.pnc.tracker.exception;
  * Thrown when an operation fails because the tracking report is in an invalid state
  * (e.g., SEALED or CORRUPTED).
  */
-public class ReportInvalidStateException extends TrackingServiceException {
+public class ReportInvalidStateException extends TrackerException {
 
     public ReportInvalidStateException(String message, Object... params) {
         super(message, params);

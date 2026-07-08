@@ -7,7 +7,7 @@ package org.jboss.pnc.tracker.exception;
 /**
  * Thrown when a tracking report cannot be found in the system.
  */
-public class ReportNotFoundException extends TrackingServiceException {
+public class ReportNotFoundException extends TrackerException {
 
     public ReportNotFoundException(String message, Object... params) {
         super(message, params);

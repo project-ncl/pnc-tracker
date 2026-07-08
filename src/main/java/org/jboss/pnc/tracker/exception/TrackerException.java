@@ -13,7 +13,7 @@ import java.text.MessageFormat;
  * is normally two layers down thanks to binding controllers). Workflow exceptions are intended to carry with them some
  * notion of what response to send to the user (even if it's the default: HTTP 500).
  */
-public class TrackingServiceException extends RuntimeException {
+public class TrackerException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private Object[] params;
@@ -22,23 +22,23 @@ public class TrackingServiceException extends RuntimeException {
 
     private int status;
 
-    public TrackingServiceException(final String message, final Object... params) {
+    public TrackerException(final String message, final Object... params) {
         super(message);
         this.params = params;
     }
 
-    public TrackingServiceException(final String message, final Throwable cause, final Object... params) {
+    public TrackerException(final String message, final Throwable cause, final Object... params) {
         super(message, cause);
         this.params = params;
     }
 
-    public TrackingServiceException(final int status, final String message, final Object... params) {
+    public TrackerException(final int status, final String message, final Object... params) {
         super(message);
         this.params = params;
         this.status = status;
     }
 
-    public TrackingServiceException(final int status, final String message, Throwable cause, final Object... params) {
+    public TrackerException(final int status, final String message, Throwable cause, final Object... params) {
         super(message, cause);
         this.params = params;
         this.status = status;
