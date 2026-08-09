@@ -73,21 +73,21 @@ public class ReportEndpointImpl implements ReportEndpoint {
 
     @Override
     public void trackUpload(String trackingId, TrackUploadRequest request) {
-        DbTrackedEntry entry = mapToEntity(trackingId, request);
+        DbTrackedEntry entry = mapToEntity(request);
         entry.storeEffect = DbStoreEffect.UPLOAD;
 
         RepositoryId repoId = request.getRepoId();
-        reportService.trackEntry(entry, repoId.getProject(), repoId.getName());
+        reportService.trackEntry(entry, trackingId, repoId.getProject(), repoId.getName());
     }
 
     @Override
     public void trackDownload(String trackingId, TrackDownloadRequest request) {
-        DbTrackedEntry entry = mapToEntity(trackingId, request);
+        DbTrackedEntry entry = mapToEntity(request);
         entry.originUrl = request.getOriginUrl();
         entry.storeEffect = DbStoreEffect.DOWNLOAD;
 
         RepositoryId repoId = request.getRepoId();
-        reportService.trackEntry(entry, repoId.getProject(), repoId.getName());
+        reportService.trackEntry(entry, trackingId, repoId.getProject(), repoId.getName());
     }
 
     /**
@@ -97,9 +97,8 @@ public class ReportEndpointImpl implements ReportEndpoint {
      * @param request the request
      * @return converted entity without the parent
      */
-    private DbTrackedEntry mapToEntity(String trackingId, TrackedArtifact request) {
+    private DbTrackedEntry mapToEntity(TrackedArtifact request) {
         DbTrackedEntry entry = new DbTrackedEntry();
-        entry.trackingId = trackingId;
         entry.path = request.getPath();
         entry.md5 = request.getMd5();
         entry.sha1 = request.getSha1();

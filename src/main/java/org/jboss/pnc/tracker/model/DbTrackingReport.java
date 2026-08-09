@@ -24,7 +24,9 @@ import jakarta.persistence.Table;
 public class DbTrackingReport extends PanacheEntityBase {
 
     @Id
-    @Column(name = "tracking_id", length = 128)
+    public Long id;
+
+    @Column(name = "tracking_id", length = 128, unique = true)
     public String trackingId;
 
     @Column(name = "state", columnDefinition = "char(1)")
@@ -39,7 +41,7 @@ public class DbTrackingReport extends PanacheEntityBase {
      * @param trackingId the unique identifier of the tracking report to find
      * @return the matching {@link DbTrackingReport} instance, or {@code null} if no such report exists
      */
-    public static DbTrackingReport findByKey(String trackingId) {
+    public static DbTrackingReport findByTrackingId(String trackingId) {
         return (DbTrackingReport) DbTrackingReport.find("trackingId", trackingId)
                 .singleResultOptional()
                 .orElse(null);

@@ -29,10 +29,10 @@ import jakarta.persistence.UniqueConstraint;
 public class DbTrackedEntry extends PanacheEntity {
 
     @Column(
-            name = "tracking_id",
+            name = "report_id",
             nullable = false,
-            columnDefinition = "VARCHAR(128) REFERENCES tracking_report(tracking_id)")
-    public String trackingId;
+            columnDefinition = "BIGINT REFERENCES tracking_report(id)")
+    public Long reportId;
 
     @Column(name = "repository_id",
             nullable = false,
@@ -67,7 +67,7 @@ public class DbTrackedEntry extends PanacheEntity {
     }
 
     public DbTrackedEntry(
-            String trackingId,
+            Long reportId,
             Long repositoryId,
             String path,
             String originUrl,
@@ -77,7 +77,7 @@ public class DbTrackedEntry extends PanacheEntity {
             String sha1,
             Long size,
             LocalDateTime timestamp) {
-        this.trackingId = trackingId;
+        this.reportId = reportId;
         this.repositoryId = repositoryId;
         this.path = path;
         this.originUrl = originUrl;
@@ -93,7 +93,7 @@ public class DbTrackedEntry extends PanacheEntity {
      * Highly-performant entry insert into database without selecting the tracking record first. It is performed only if
      * the tracking report is not sealed.
      *
-     * @param trackingId the tracking report ID
+     * @param reportId the tracking report ID
      * @return true in case of successful persist; false if a record with the trackingId does not exist or is sealed
      */
     public boolean persistIfActive() {
@@ -106,7 +106,7 @@ public class DbTrackedEntry extends PanacheEntity {
             WHERE r.tracking_id = :trackingId AND r.sealed = false
             ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
             """)
-            .setParameter("trackingId", this.trackingId)
+            .setParameter("reportId", this.reportId)
             .setParameter("repositoryId", this.repositoryId)
             .setParameter("path", this.path)
             .setParameter("originUrl", this.originUrl)
@@ -130,11 +130,11 @@ public class DbTrackedEntry extends PanacheEntity {
      * <b>Warning:</b> These entities are detached and cannot be used for updates or persists.
      * </p>
      *
-     * @param trackingId the unique identifier of the report.
+     * @param reportId the unique identifier of the report.
      * @param effect the optional {@link DbStoreEffect} to filter by; pass {@code null} to retrieve all.
      * @return a {@link List} of detached {@link DbTrackedEntry} entities.
      */
-    public static List<TrackedEntryProjection> findDetachedWithRepo(String trackingId, DbStoreEffect effect) {
+    public static List<TrackedEntryProjection> findDetachedWithRepo(Long reportId, DbStoreEffect effect) {
         return Panache.getEntityManager()
                 .unwrap(Session.class)
                 .getSessionFactory()
@@ -146,7 +146,7 @@ public class DbTrackedEntry extends PanacheEntity {
                                 + "FROM DbTrackedEntry e JOIN DbRepository m ON e.repositoryId = m.id "
                                 + "WHERE e.trackingId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
                         TrackedEntryProjection.class)
-                .setParameter("id", trackingId)
+                .setParameter("id", reportId)
                 .setParameter("effect", effect) // Hibernate 6 can handle null
                 .getResultList();
     }

@@ -18,6 +18,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -41,10 +42,34 @@ public class ReportService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Inject
+    ReportCache reportCache;
+
+    @Inject
     RepositoryCache repositoryCache;
 
     /**
-     * Retrieves a tracking report by its unique key.
+     * Retrieves a tracking report by its primary key.
+     * <p>
+     * This method acts as the primary internal getter for business logic. If the report
+     * is not found in the database, it throws a domain-specific {@link ReportNotFoundException}.
+     * This exception is subsequently intercepted by the REST layer's exception mappers
+     * to return a standard HTTP 404 Not Found status to the client.
+     * </p>
+     *
+     * @param key the unique tracking key of the report to retrieve
+     * @return the matching {@link DbTrackingReport} instance
+     * @throws ReportNotFoundException if no tracking report exists with the specified key
+     */
+    public DbTrackingReport getReport(Long reportId) {
+        DbTrackingReport trackingReport = DbTrackingReport.findById(reportId);
+        if (trackingReport == null) {
+            throw new ReportNotFoundException("Tracking report with ID %s was not found.", reportId);
+        }
+        return trackingReport;
+    }
+
+    /**
+     * Retrieves a tracking report by its tracking ID.
      * <p>
      * This method acts as the primary internal getter for business logic. If the report
      * is not found in the database, it throws a domain-specific {@link ReportNotFoundException}.
@@ -57,9 +82,9 @@ public class ReportService {
      * @throws ReportNotFoundException if no tracking report exists with the specified key
      */
     public DbTrackingReport getReport(String trackingId) {
-        DbTrackingReport trackingReport = DbTrackingReport.findByKey(trackingId);
+        DbTrackingReport trackingReport = DbTrackingReport.findByTrackingId(trackingId);
         if (trackingReport == null) {
-            throw new ReportNotFoundException("Tracking report with ID %s was not found.", trackingId);
+            throw new ReportNotFoundException("Tracking report with tracking ID %s was not found.", trackingId);
         }
         return trackingReport;
     }
@@ -90,7 +115,7 @@ public class ReportService {
                     report.state);
         }
         // 2. Fetch the data using the optimized stateless approach
-        return DbTrackedEntry.findDetachedWithRepo(trackingId, effect);
+        return DbTrackedEntry.findDetachedWithRepo(report.id, effect);
     }
 
     /**
@@ -139,12 +164,16 @@ public class ReportService {
      * @param entry the transient tracking entry to persist
      * @param project project in Artifactory
      * @param repoName repository name in Artifactory
+     * @param trackingId the tracking ID to track the entry in
      * @throws ReportNotFoundException if the report does not exist
      * @throws ReportInvalidStateException if the report is sealed or corrupted
      */
     @Transactional
-    public void trackEntry(DbTrackedEntry entry, String project, String repoName) {
+    public void trackEntry(DbTrackedEntry entry, String trackingId, String project, String repoName) {
+        Long reportId = reportCache.getReportId(trackingId);
         Long repoId = repositoryCache.getOrCreateRepositoryId(project, repoName);
+
+        entry.reportId = reportId;
         entry.repositoryId = repoId;
 
         // ultra-fast conditional persist
@@ -160,17 +189,17 @@ public class ReportService {
      * Validates the report status and throws domain-specific service exceptions.
      */
     private void validateReportStatus(DbTrackedEntry entry) {
-        DbTrackingReport report = getReport(entry.trackingId);
+        DbTrackingReport report = getReport(entry.reportId);
         if (report == null) {
-            throw new ReportNotFoundException("Tracking report not found: %s", entry.trackingId);
+            throw new ReportNotFoundException("Tracking report not found: %s", entry.reportId);
         }
 
         if (report.state == DbTrackingReportState.SEALED) {
-            throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.trackingId);
+            throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.reportId);
         }
 
         if (report.state == DbTrackingReportState.CORRUPTED) {
-            throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.trackingId);
+            throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.reportId);
         }
 
         if (report.state == DbTrackingReportState.IN_PROGRESS) {
@@ -178,7 +207,7 @@ public class ReportService {
                     "Entry for path {} in repository {} already exists in report {}. Skipping duplicate.",
                     entry.path,
                     entry.repositoryId,
-                    entry.trackingId);
+                    entry.reportId);
         }
     }
 
@@ -195,7 +224,7 @@ public class ReportService {
      */
     @Transactional
     public void initReport(String trackingId) {
-        DbTrackingReport existingReport = DbTrackingReport.findByKey(trackingId);
+        DbTrackingReport existingReport = DbTrackingReport.findByTrackingId(trackingId);
 
         if (existingReport == null) {
             DbTrackingReport newReport = new DbTrackingReport();
