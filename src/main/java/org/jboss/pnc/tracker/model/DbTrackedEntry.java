@@ -25,7 +25,7 @@ import jakarta.persistence.UniqueConstraint;
                 @Index(name = "idx_store_path_effect", columnList = "store_key,path,store_effect")},
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_build_repo_operation_path",
-                columnNames = { "tracking_id", "repository_id", "store_effect", "path" }))
+                columnNames = { "report_id", "repository_id", "store_effect", "path" }))
 public class DbTrackedEntry extends PanacheEntity {
 
     @Column(
@@ -99,11 +99,11 @@ public class DbTrackedEntry extends PanacheEntity {
     public boolean persistIfActive() {
         return getEntityManager().createNativeQuery("""
             INSERT INTO tracked_entry
-                (tracking_id, repository_id, path, origin_url, store_effect, md5, sha1, sha256, size, timestamp)
+                (report_id, repository_id, path, origin_url, store_effect, md5, sha1, sha256, size, access_timestamp)
             SELECT
-                r.trackingId, :repositoryId, :path, :originUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
+                r.reportId, :repositoryId, :path, :originUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
             FROM tracking_report r
-            WHERE r.tracking_id = :trackingId AND r.sealed = false
+            WHERE r.id = :reportId AND r.sealed = false
             ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
             """)
             .setParameter("reportId", this.reportId)
@@ -141,10 +141,10 @@ public class DbTrackedEntry extends PanacheEntity {
                 .openStatelessSession()
                 .createQuery(
                         "SELECT new org.jboss.pnc.tracker.model.TrackedEntryProjection("
-                                + "  e.trackingId, m.project, m.name, m.packageType, e.path, e.originUrl,"
+                                + "  m.project, m.name, m.packageType, e.path, e.originUrl,"
                                 + " e.storeEffect, e.md5, e.sha1, e.sha256, e.size, e.timestamp" + ") "
                                 + "FROM DbTrackedEntry e JOIN DbRepository m ON e.repositoryId = m.id "
-                                + "WHERE e.trackingId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
+                                + "WHERE e.reportId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
                         TrackedEntryProjection.class)
                 .setParameter("id", reportId)
                 .setParameter("effect", effect) // Hibernate 6 can handle null

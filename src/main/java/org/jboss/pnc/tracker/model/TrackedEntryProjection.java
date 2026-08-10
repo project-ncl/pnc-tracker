@@ -7,7 +7,6 @@ package org.jboss.pnc.tracker.model;
 import java.time.LocalDateTime;
 
 public record TrackedEntryProjection(
-    String trackingId,
     String project,
     String name,
     DbPackageType packageType,
