@@ -19,11 +19,11 @@ import jakarta.persistence.UniqueConstraint;
 public class DbRepository extends PanacheEntity {
 
     /** The name of the project this repository belongs to. */
-    @Column(name = "project", length = 32)
+    @Column(name = "project", length = 20)
     public String project;
 
     /** The specific name of the repository. */
-    @Column(name = "name", length = 32)
+    @Column(name = "name", length = 64)
     public String name;
 
     /** The type of packages managed by this repository. */
