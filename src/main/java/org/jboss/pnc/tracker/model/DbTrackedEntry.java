@@ -22,7 +22,7 @@ import jakarta.persistence.UniqueConstraint;
 @Table(
         name = "tracked_entry",
         indexes = { @Index(name = "idx_timestamps", columnList = "timestamp"),
-                @Index(name = "idx_store_path_effect", columnList = "store_key,path,store_effect")},
+                @Index(name = "idx_store_path_effect", columnList = "repository_id,path,store_effect")},
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_build_repo_operation_path",
                 columnNames = { "report_id", "repository_id", "store_effect", "path" }))
