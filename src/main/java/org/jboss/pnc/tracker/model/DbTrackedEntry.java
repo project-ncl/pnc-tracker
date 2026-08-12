@@ -60,7 +60,7 @@ public class DbTrackedEntry extends PanacheEntity {
     @Column(name = "size")
     public Long size;
 
-    @Column(name = "access_timestamp")
+    @Column(name = "timestamp")
     public LocalDateTime timestamp;
 
     public DbTrackedEntry() {
@@ -99,7 +99,7 @@ public class DbTrackedEntry extends PanacheEntity {
     public boolean persistIfActive() {
         return getEntityManager().createNativeQuery("""
             INSERT INTO tracked_entry
-                (report_id, repository_id, path, origin_url, store_effect, md5, sha1, sha256, size, access_timestamp)
+                (report_id, repository_id, path, origin_url, store_effect, md5, sha1, sha256, size, timestamp)
             SELECT
                 r.reportId, :repositoryId, :path, :originUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
             FROM tracking_report r
