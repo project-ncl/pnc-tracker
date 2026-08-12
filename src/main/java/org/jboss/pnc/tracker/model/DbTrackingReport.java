@@ -6,10 +6,9 @@ package org.jboss.pnc.tracker.model;
 
 import java.util.List;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
@@ -21,10 +20,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "tracking_report")
-public class DbTrackingReport extends PanacheEntityBase {
-
-    @Id
-    public Long id;
+public class DbTrackingReport extends PanacheEntity {
 
     @Column(name = "tracking_id", length = 128, unique = true)
     public String trackingId;
