@@ -31,6 +31,11 @@ public class DbTrackingReport extends PanacheEntity {
     public DbTrackingReport() {
     }
 
+    public DbTrackingReport(Long id, String trackingId) {
+        this.id = id;
+        this.trackingId = trackingId;
+    }
+
     /**
      * Finds a tracking report by its unique tracking key.
      *

@@ -13,7 +13,10 @@ import io.quarkus.hibernate.orm.panache.Panache;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -28,16 +31,13 @@ import jakarta.persistence.UniqueConstraint;
                 columnNames = { "report_id", "repository_id", "store_effect", "path" }))
 public class DbTrackedEntry extends PanacheEntity {
 
-    @Column(
-            name = "report_id",
-            nullable = false,
-            columnDefinition = "BIGINT REFERENCES tracking_report(id)")
-    public Long reportId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "report_id", nullable = false)
+    public DbTrackingReport report;
 
-    @Column(name = "repository_id",
-            nullable = false,
-            columnDefinition = "BIGINT REFERENCES repository(id)")
-    public Long repositoryId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "repository_id", nullable = false)
+    public DbRepository repository;
 
     @Column(name = "path")
     public String path;
@@ -66,29 +66,6 @@ public class DbTrackedEntry extends PanacheEntity {
     public DbTrackedEntry() {
     }
 
-    public DbTrackedEntry(
-            Long reportId,
-            Long repositoryId,
-            String path,
-            String originUrl,
-            DbStoreEffect storeEffect,
-            String md5,
-            String sha256,
-            String sha1,
-            Long size,
-            LocalDateTime timestamp) {
-        this.reportId = reportId;
-        this.repositoryId = repositoryId;
-        this.path = path;
-        this.originUrl = originUrl;
-        this.storeEffect = storeEffect;
-        this.md5 = md5;
-        this.sha1 = sha1;
-        this.sha256 = sha256;
-        this.size = size;
-        this.timestamp = timestamp;
-    }
-
     /**
      * Highly-performant entry insert into database without selecting the tracking record first. It is performed only if
      * the tracking report is not sealed.
@@ -106,9 +83,9 @@ public class DbTrackedEntry extends PanacheEntity {
             WHERE r.id = :reportId AND r.state = :reportState
             ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
             """)
-            .setParameter("reportId", this.reportId)
+            .setParameter("reportId", this.report.id)
             .setParameter("reportState", DbTrackingReportState.IN_PROGRESS.getDbCode())
-            .setParameter("repositoryId", this.repositoryId)
+            .setParameter("repositoryId", this.repository.id)
             .setParameter("path", this.path)
             .setParameter("originUrl", this.originUrl)
             .setParameter("storeEffect", this.storeEffect)

@@ -9,6 +9,7 @@ import org.jboss.pnc.tracker.exception.ReportInvalidStateException;
 import org.jboss.pnc.tracker.exception.ReportNotFoundException;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
+import org.jboss.pnc.tracker.model.DbRepository;
 import org.jboss.pnc.tracker.model.DbStoreEffect;
 import org.jboss.pnc.tracker.model.TrackedEntryProjection;
 import org.jboss.pnc.tracker.model.DbTrackingReportState;
@@ -218,8 +219,8 @@ public class ReportService {
         Long reportId = reportCache.getReportId(trackingId);
         Long repoId = repositoryCache.getOrCreateRepositoryId(project, repoName);
 
-        entry.reportId = reportId;
-        entry.repositoryId = repoId;
+        entry.report = new DbTrackingReport(reportId, trackingId);
+        entry.repository = new DbRepository(repoId, null, null);
 
         // ultra-fast conditional persist
         boolean success = entry.persistIfActive();
@@ -234,25 +235,25 @@ public class ReportService {
      * Validates the report status and throws domain-specific service exceptions.
      */
     private void validateReportStatus(DbTrackedEntry entry) {
-        DbTrackingReport report = getReport(entry.reportId);
+        DbTrackingReport report = getReport(entry.report.id);
         if (report == null) {
-            throw new ReportNotFoundException("Tracking report not found: %s", entry.reportId);
+            throw new ReportNotFoundException("Tracking report not found: %s", entry.report.id);
         }
 
         if (report.state == DbTrackingReportState.SEALED) {
-            throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.reportId);
+            throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.report.id);
         }
 
         if (report.state == DbTrackingReportState.CORRUPTED) {
-            throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.reportId);
+            throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.report.id);
         }
 
         if (report.state == DbTrackingReportState.IN_PROGRESS) {
             logger.debug(
                     "Entry for path {} in repository {} already exists in report {}. Skipping duplicate.",
                     entry.path,
-                    entry.repositoryId,
-                    entry.reportId);
+                    entry.repository.id,
+                    entry.report.id);
         }
     }
 

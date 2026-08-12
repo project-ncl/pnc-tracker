@@ -5,15 +5,20 @@
 package org.jboss.pnc.tracker.service;
 
 import org.jboss.pnc.tracker.model.DbPackageType;
+import org.jboss.pnc.tracker.model.DbRepository;
 import org.jboss.pnc.tracker.model.DbStoreEffect;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
+import org.jboss.pnc.tracker.model.DbTrackingReport;
+import org.jboss.pnc.tracker.model.DbTrackingReportState;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -172,9 +177,16 @@ public class ArtifactoryConnector {
 
             List<DbTrackedEntry> entries = new ArrayList<>(items.size());
 
+            // verify the artifactory project is configured
+            artifactoryProject.orElseThrow(() ->
+                new IllegalStateException("tracker.artifactory.project must be set when pull-data is enabled")
+            );
+            DbTrackingReport reportRef = new DbTrackingReport(reportCache.getReportId(trackingId), trackingId);
+            Map<String, DbRepository> repoMap = new HashMap<>();
+            String project = artifactoryProject.get();
             for (AqlItem item : items) {
                 try {
-                    DbTrackedEntry entry = convertAqlItemToEntity(item, trackingId, trackPropName);
+                    DbTrackedEntry entry = convertAqlItemToEntity(item, reportRef, project, repoMap, trackPropName);
                     entries.add(entry);
                 } catch (Exception e) {
                     logger.warnf("Failed to convert AqlItem (%s/%s): %s", item.getRepo(), item.getName(), e.getMessage());
@@ -189,33 +201,39 @@ public class ArtifactoryConnector {
             throw new IllegalStateException("Failed to retrieve tracking report from Artifactory for: " + trackingId, e);
         }
     }
+
     /**
      * Converts a single {@link AqlItem} returned by Artifactory AQL into a {@link DbTrackedEntry}.
      */
-    private DbTrackedEntry convertAqlItemToEntity(AqlItem item, String trackingId, String trackPropName) {
+    private DbTrackedEntry convertAqlItemToEntity(
+            AqlItem item,
+            DbTrackingReport reportRef,
+            String project,
+            Map<String, DbRepository> repoMap,
+            String trackPropName) {
         String repoKey = item.getRepo();
-        String project = artifactoryProject.orElseThrow(() ->
-            new IllegalStateException("tracker.artifactory.project must be set when pull-data is enabled")
-        );
+
         // Strip project prefix from repoKey to get clean repository name
         // e.g., "pnc-mvn-build-123" -> "mvn-build-123"
         String repoName = repoKey;
-        if (repoKey.startsWith(artifactoryProject + "-")) {
+        if (repoKey.startsWith(project + "-")) {
             repoName = repoKey.substring(project.length() + 1);
         }
 
-        // Get or automatically resolve/create DB repository ID via cache
-        Long repositoryId = repositoryCache.getOrCreateRepositoryId(project, repoName);
-
         // Classify effect: If repoKey contains build/tracking ID -> UPLOAD, otherwise -> DOWNLOAD
-        DbStoreEffect storeEffect = repoKey.contains(trackingId) ? DbStoreEffect.UPLOAD : DbStoreEffect.DOWNLOAD;
+        DbStoreEffect storeEffect = repoKey.contains(reportRef.trackingId) ? DbStoreEffect.UPLOAD : DbStoreEffect.DOWNLOAD;
 
         // Construct normalized relative path
         String path = normalizePath(item.getPath(), item.getName());
 
+        // Get or automatically resolve/create DB repository ID via cache
+        DbRepository repositoryRef = repoMap.computeIfAbsent(
+                repoName,
+                name -> new DbRepository(repositoryCache.getOrCreateRepositoryId(project, name), project, name));
+
         DbTrackedEntry entry = new DbTrackedEntry();
-        entry.reportId = reportCache.getReportId(trackingId);
-        entry.repositoryId = repositoryId;
+        entry.report = reportRef;
+        entry.repository = repositoryRef;
         entry.path = path;
         entry.originUrl = extractOriginUrl(item);
         entry.storeEffect = storeEffect;

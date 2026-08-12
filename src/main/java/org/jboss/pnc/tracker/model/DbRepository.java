@@ -33,6 +33,12 @@ public class DbRepository extends PanacheEntity {
     public DbRepository() {
     }
 
+    public DbRepository(Long id, String project, String name) {
+        this.id = id;
+        this.project = project;
+        this.name = name;
+    }
+
     /**
      * Finds a tracking report by its unique tracking key.
      *
