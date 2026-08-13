@@ -84,10 +84,7 @@ public class DbTrackingReport extends PanacheEntity {
      * @return {@code true} if the report contains at least one entry; {@code false} otherwise.
      */
     public static boolean hasEntries(String trackingId) {
-        return getEntityManager()
-                .createQuery("SELECT COUNT(e) FROM DbTrackedEntry e WHERE e.trackingRecord.trackingId = :id", Long.class)
-                .setParameter("id", trackingId)
-                .getSingleResult() > 0;
+        return DbTrackedEntry.count("report.trackingId", trackingId) > 0;
     }
 
 }
