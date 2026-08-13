@@ -26,9 +26,12 @@ public class ReportCache {
      */
     @CacheResult(cacheName = "report-id-idx")
     public Long getReportId(String trackingId) {
-        Long reportId = DbTrackingReport.find("trackingId", trackingId)
-                .project(Long.class)
-                .firstResult();
+        Long reportId = DbTrackingReport.getEntityManager()
+                .createQuery("SELECT r.id FROM DbTrackingReport r WHERE r.trackingId = :trackingId", Long.class)
+                .setParameter("trackingId", trackingId)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
         if (reportId == null) {
             throw new ReportNotFoundException("Tracking report with tracking ID %s was not found.", trackingId);
         }
