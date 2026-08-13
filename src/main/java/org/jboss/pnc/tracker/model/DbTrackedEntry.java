@@ -120,9 +120,9 @@ public class DbTrackedEntry extends PanacheEntity {
                 .createQuery(
                         "SELECT new org.jboss.pnc.tracker.model.TrackedEntryProjection("
                                 + "  m.project, m.name, m.packageType, e.path, e.originUrl,"
-                                + " e.storeEffect, e.md5, e.sha1, e.sha256, e.size, e.timestamp" + ") "
-                                + "FROM DbTrackedEntry e JOIN DbRepository m ON e.repositoryId = m.id "
-                                + "WHERE e.reportId = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
+                                + "  e.storeEffect, e.md5, e.sha1, e.sha256, e.size, e.timestamp) "
+                                + "FROM DbTrackedEntry e JOIN e.repository m "
+                                + "WHERE e.report.id = :id AND (:effect IS NULL OR e.storeEffect = :effect)",
                         TrackedEntryProjection.class)
                 .setParameter("id", reportId)
                 .setParameter("effect", effect) // Hibernate 6 can handle null
