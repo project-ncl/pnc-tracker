@@ -237,15 +237,15 @@ public class ReportService {
     private void validateReportStatus(DbTrackedEntry entry) {
         DbTrackingReport report = getReport(entry.report.id);
         if (report == null) {
-            throw new ReportNotFoundException("Tracking report not found: %s", entry.report.id);
+            throw new ReportNotFoundException("Tracking report not found: %s", entry.report.trackingId);
         }
 
         if (report.state == DbTrackingReportState.SEALED) {
-            throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.report.id);
+            throw new ReportInvalidStateException("Tracking report %s is sealed.", entry.report.trackingId);
         }
 
         if (report.state == DbTrackingReportState.CORRUPTED) {
-            throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.report.id);
+            throw new ReportInvalidStateException("Tracking report %s is corrupted.", entry.report.trackingId);
         }
 
         if (report.state == DbTrackingReportState.IN_PROGRESS) {

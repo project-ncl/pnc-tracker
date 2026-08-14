@@ -88,7 +88,7 @@ public class DbTrackedEntry extends PanacheEntity {
             .setParameter("repositoryId", this.repository.id)
             .setParameter("path", this.path)
             .setParameter("originUrl", this.originUrl)
-            .setParameter("storeEffect", this.storeEffect)
+            .setParameter("storeEffect", this.storeEffect.getDbCode())
             .setParameter("md5", this.md5)
             .setParameter("sha1", this.sha1)
             .setParameter("sha256", this.sha256)
