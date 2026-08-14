@@ -84,30 +84,30 @@ public class ArtifactoryConnector {
      * @throws IllegalArgumentException if the remote package type is unsupported by the internal model
      */
     public DbPackageType fetchPackageType(String project, String name) {
-        String repoName = project + "-" + name;
+        String repoKey = project + "-" + name;
 
         try {
-            RepositoryHandle repositoryHandle = artifactory.repositories().repository(repoName);
+            RepositoryHandle repositoryHandle = artifactory.repositories().repository(repoKey);
             Repository repo = repositoryHandle.get();
 
             if (repo == null || repo.getRepositorySettings() == null) {
-                throw new IllegalStateException("Repository settings not found for repo: " + repoName);
+                throw new IllegalStateException("Repository settings not found for repo: " + repoKey);
             }
 
             PackageType artifactoryType = repo.getRepositorySettings().getPackageType();
             if (artifactoryType == null) {
-                throw new IllegalStateException("Package type is null in Artifactory response for repo: " + repoName);
+                throw new IllegalStateException("Package type is null in Artifactory response for repo: " + repoKey);
             }
 
-            return mapToDbPackageType(artifactoryType, repoName);
+            return mapToDbPackageType(artifactoryType, repoKey);
 
         } catch (Exception e) {
-            logger.errorf("Failed to fetch or map package type for repo %s: %s", repoName, e.getMessage());
+            logger.errorf("Failed to fetch or map package type for repo %s: %s", repoKey, e.getMessage());
             // Fail fast: Re-throw or wrap in runtime exception to abort tracking
             if (e instanceof RuntimeException runtimeException) {
                 throw runtimeException;
             }
-            throw new IllegalStateException("Could not retrieve metadata for repo: " + repoName, e);
+            throw new IllegalStateException("Could not retrieve metadata for repo: " + repoKey, e);
         }
     }
 
