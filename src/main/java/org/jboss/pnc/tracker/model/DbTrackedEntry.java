@@ -42,8 +42,11 @@ public class DbTrackedEntry extends PanacheEntity {
     @Column(name = "path")
     public String path;
 
-    @Column(name = "origin_url")
+    @Column(name = "origin_url", length = 2048)
     public String originUrl;
+
+    @Column(name = "local_url", length = 2048)
+    public String localUrl;
 
     @Column(name = "store_effect", columnDefinition = "char(1)")
     public DbStoreEffect storeEffect;
@@ -76,9 +79,9 @@ public class DbTrackedEntry extends PanacheEntity {
     public boolean persistIfActive() {
         return getEntityManager().createNativeQuery("""
             INSERT INTO tracked_entry
-                (id, report_id, repository_id, path, origin_url, store_effect, md5, sha1, sha256, size, timestamp)
+                (id, report_id, repository_id, path, origin_url, local_url, store_effect, md5, sha1, sha256, size, timestamp)
             SELECT
-                nextval('tracked_entry_SEQ'), r.id, :repositoryId, :path, :originUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
+                nextval('tracked_entry_SEQ'), r.id, :repositoryId, :path, :originUrl, :localUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
             FROM tracking_report r
             WHERE r.id = :reportId AND r.state = :reportState
             ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
@@ -88,6 +91,7 @@ public class DbTrackedEntry extends PanacheEntity {
             .setParameter("repositoryId", this.repository.id)
             .setParameter("path", this.path)
             .setParameter("originUrl", this.originUrl)
+            .setParameter("localUrl", this.localUrl)
             .setParameter("storeEffect", this.storeEffect.getDbCode())
             .setParameter("md5", this.md5)
             .setParameter("sha1", this.sha1)
@@ -119,7 +123,7 @@ public class DbTrackedEntry extends PanacheEntity {
                 .openStatelessSession()
                 .createQuery(
                         "SELECT new org.jboss.pnc.tracker.model.TrackedEntryProjection("
-                                + "  m.project, m.name, m.packageType, e.path, e.originUrl,"
+                                + "  m.project, m.name, m.packageType, e.path, e.originUrl, e.localUrl,"
                                 + "  e.storeEffect, e.md5, e.sha1, e.sha256, e.size, e.timestamp) "
                                 + "FROM DbTrackedEntry e JOIN e.repository m "
                                 + "WHERE e.report.id = :id AND (:effect IS NULL OR e.storeEffect = :effect)",

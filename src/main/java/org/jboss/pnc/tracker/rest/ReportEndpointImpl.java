@@ -151,6 +151,8 @@ public class ReportEndpointImpl implements ReportEndpoint {
         return TrackedEntry.builder()
                 .repoId(repoId)
                 .path(p.path())
+                .originUrl(p.originUrl())
+                .localUrl(p.localUrl())
                 .md5(p.md5())
                 .sha1(p.sha1())
                 .sha256(p.sha256())

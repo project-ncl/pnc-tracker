@@ -9,7 +9,6 @@ import org.jboss.pnc.tracker.model.DbRepository;
 import org.jboss.pnc.tracker.model.DbStoreEffect;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
-import org.jboss.pnc.tracker.model.DbTrackingReportState;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -50,6 +49,12 @@ public class ArtifactoryConnector {
 
     @ConfigProperty(name = "tracker.artifactory.project")
     Optional<String> artifactoryProject;
+
+    @ConfigProperty(name = "tracker.artifactory.url")
+    Optional<String> baseUrl;
+
+    @ConfigProperty(name = "tracker.artifactory.internal-url")
+    Optional<String> internalBaseUrl;
 
     @Inject
     private Artifactory artifactory;
@@ -184,9 +189,16 @@ public class ArtifactoryConnector {
             DbTrackingReport reportRef = new DbTrackingReport(reportCache.getReportId(trackingId), trackingId);
             Map<String, DbRepository> repoMap = new HashMap<>();
             String project = artifactoryProject.get();
+            String localBaseUrl = internalBaseUrl.isPresent() ? internalBaseUrl.get() : baseUrl.get();
             for (AqlItem item : items) {
                 try {
-                    DbTrackedEntry entry = convertAqlItemToEntity(item, reportRef, project, repoMap, trackPropName);
+                    DbTrackedEntry entry = convertAqlItemToEntity(
+                            item,
+                            reportRef,
+                            project,
+                            localBaseUrl,
+                            repoMap,
+                            trackPropName);
                     entries.add(entry);
                 } catch (Exception e) {
                     logger.warnf("Failed to convert AqlItem (%s/%s): %s", item.getRepo(), item.getName(), e.getMessage());
@@ -209,6 +221,7 @@ public class ArtifactoryConnector {
             AqlItem item,
             DbTrackingReport reportRef,
             String project,
+            String localBaseUrl,
             Map<String, DbRepository> repoMap,
             String trackPropName) {
         String repoKey = item.getRepo();
@@ -236,6 +249,7 @@ public class ArtifactoryConnector {
         entry.repository = repositoryRef;
         entry.path = path;
         entry.originUrl = extractOriginUrl(item);
+        entry.localUrl = localBaseUrl + "/" + repoKey + "/" + path;
         entry.storeEffect = storeEffect;
         entry.md5 = item.getActualMd5();
         entry.sha1 = item.getActualSha1();
