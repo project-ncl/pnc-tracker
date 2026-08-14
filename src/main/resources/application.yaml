@@ -14,6 +14,9 @@ quarkus:
   hibernate-orm:
     schema-management:
       strategy: validate
+  jackson:
+    serialization-inclusion:
+      non-null
   datasource:
     db-kind: ${QUARKUS_DATASOURCE:postgresql}
     jdbc:
