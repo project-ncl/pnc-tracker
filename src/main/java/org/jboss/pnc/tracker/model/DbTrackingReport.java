@@ -22,10 +22,10 @@ import jakarta.persistence.Table;
 @Table(name = "tracking_report")
 public class DbTrackingReport extends PanacheEntity {
 
-    @Column(name = "tracking_id", length = 128, unique = true)
+    @Column(name = "tracking_id", length = 128, nullable = false, unique = true)
     public String trackingId;
 
-    @Column(name = "state", columnDefinition = "char(1)")
+    @Column(name = "state", columnDefinition = "char(1)", nullable = false)
     public DbTrackingReportState state;
 
     public DbTrackingReport() {

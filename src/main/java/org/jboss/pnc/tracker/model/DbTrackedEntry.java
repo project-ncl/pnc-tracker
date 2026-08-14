@@ -39,31 +39,31 @@ public class DbTrackedEntry extends PanacheEntity {
     @JoinColumn(name = "repository_id", nullable = false)
     public DbRepository repository;
 
-    @Column(name = "path")
+    @Column(name = "path", nullable = false)
     public String path;
 
     @Column(name = "origin_url", length = 2048)
     public String originUrl;
 
-    @Column(name = "local_url", length = 2048)
+    @Column(name = "local_url", length = 2048, nullable = false)
     public String localUrl;
 
-    @Column(name = "store_effect", columnDefinition = "char(1)")
+    @Column(name = "store_effect", columnDefinition = "char(1)", nullable = false)
     public DbStoreEffect storeEffect;
 
-    @Column(name = "md5")
+    @Column(name = "md5", nullable = false)
     public String md5;
 
-    @Column(name = "sha1")
+    @Column(name = "sha1", nullable = false)
     public String sha1;
 
-    @Column(name = "sha256")
+    @Column(name = "sha256", nullable = false)
     public String sha256;
 
-    @Column(name = "size")
+    @Column(name = "size", nullable = false)
     public Long size;
 
-    @Column(name = "timestamp")
+    @Column(name = "timestamp", nullable = false)
     public LocalDateTime timestamp;
 
     public DbTrackedEntry() {
