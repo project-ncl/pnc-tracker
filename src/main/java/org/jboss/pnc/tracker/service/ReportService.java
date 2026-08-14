@@ -329,6 +329,7 @@ public class ReportService {
         if (report == null) {
             logger.debug("Attempted to clear non-existent tracking report: %s. Skipping.", trackingId);
         } else {
+            DbTrackedEntry.delete("report.id = ?1", report.id);
             report.delete();
             logger.info("Report %s and all its entries have been cleared.", trackingId);
         }
