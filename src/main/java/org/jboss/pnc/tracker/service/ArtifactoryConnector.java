@@ -146,12 +146,17 @@ public class ArtifactoryConnector {
         String trackPropName = BUILD_PROPERTY_PREFIX + trackingId;
         logger.infof("Querying Artifactory AQL for tracking report: %s (property: %s)", trackingId, trackPropName);
 
+        // verify the artifactory project is configured
+        artifactoryProject.orElseThrow(() ->
+            new IllegalStateException("tracker.artifactory.project must be set when pull-data is enabled")
+        );
+
         try {
             // Build single AQL FileSpec search query combining build repo and shared repos
             FileSpec spec = new FileSpec();
             spec = new FileSpecBuilder()
                     .item("type", "file")
-                    .match("repo", artifactoryProject + "-*")
+                    .match("repo", artifactoryProject.get() + "-*")
                     .eq("property.key", trackPropName)
                     .include(
                             "name",
@@ -182,10 +187,6 @@ public class ArtifactoryConnector {
 
             List<DbTrackedEntry> entries = new ArrayList<>(items.size());
 
-            // verify the artifactory project is configured
-            artifactoryProject.orElseThrow(() ->
-                new IllegalStateException("tracker.artifactory.project must be set when pull-data is enabled")
-            );
             DbTrackingReport reportRef = new DbTrackingReport(reportCache.getReportId(trackingId), trackingId);
             Map<String, DbRepository> repoMap = new HashMap<>();
             String project = artifactoryProject.get();
