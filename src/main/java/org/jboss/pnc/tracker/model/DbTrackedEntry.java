@@ -78,7 +78,7 @@ public class DbTrackedEntry extends PanacheEntity {
             INSERT INTO tracked_entry
                 (report_id, repository_id, path, origin_url, store_effect, md5, sha1, sha256, size, timestamp)
             SELECT
-                r.reportId, :repositoryId, :path, :originUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
+                r.id, :repositoryId, :path, :originUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
             FROM tracking_report r
             WHERE r.id = :reportId AND r.state = :reportState
             ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
