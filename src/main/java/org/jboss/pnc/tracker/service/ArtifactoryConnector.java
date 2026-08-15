@@ -68,7 +68,7 @@ public class ArtifactoryConnector {
     /**
      * Fetches the package type of a repository from Artifactory based on its project and name.
      * <p>
-     * The repository name in Artifactory is composed as {@code project-name}. This method executes
+     * The repository key in Artifactory is composed as {@code project-name}. This method executes
      * a synchronous network call to Artifactory to retrieve the repository metadata and maps the
      * remote {@link PackageType} to the internal {@link DbPackageType}.
      * </p>
@@ -78,7 +78,7 @@ public class ArtifactoryConnector {
      * </p>
      *
      * @param project the project identifier of the repository
-     * @param name the repository name
+     * @param name the repository name (within the project)
      * @return the resolved internal {@link DbPackageType}
      * @throws IllegalStateException if repository metadata or settings cannot be retrieved from Artifactory
      * @throws IllegalArgumentException if the remote package type is unsupported by the internal model
@@ -114,7 +114,7 @@ public class ArtifactoryConnector {
     /**
      * Explicitly maps supported JFrog Artifactory package types to internal DbPackageType enum.
      */
-    private DbPackageType mapToDbPackageType(PackageType artifactoryType, String repoName) {
+    private DbPackageType mapToDbPackageType(PackageType artifactoryType, String repoKey) {
         String typeName = artifactoryType.name().toLowerCase();
 
         return switch (typeName) {
@@ -126,7 +126,7 @@ public class ArtifactoryConnector {
                     String.format(
                             "Unsupported package type '%s' for repository '%s'. Tracking aborted.",
                             typeName,
-                            repoName));
+                            repoKey));
         };
     }
 
