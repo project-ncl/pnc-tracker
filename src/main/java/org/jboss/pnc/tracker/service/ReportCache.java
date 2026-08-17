@@ -7,6 +7,7 @@ package org.jboss.pnc.tracker.service;
 import org.jboss.pnc.tracker.exception.ReportNotFoundException;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
 
+import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -39,4 +40,17 @@ public class ReportCache {
         return reportId;
     }
 
+    /**
+     * Evicts the cached report ID associated with the specified tracking ID.
+     * <p>
+     * Invalidates the entry in the {@code report-id-idx} cache to ensure subsequent
+     * lookups retrieve the updated report state directly from the database.
+     *
+     * @param trackingId the unique tracking identifier of the report to be evicted from the cache
+     */
+    @SuppressWarnings("unused")
+    @CacheInvalidate(cacheName = "report-id-idx")
+    public void evictReportId(String trackingId) {
+        // Handled by Quarkus @CacheInvalidate interceptor
+    }
 }

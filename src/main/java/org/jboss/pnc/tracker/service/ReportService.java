@@ -331,6 +331,9 @@ public class ReportService {
         } else {
             DbTrackedEntry.delete("report.id = ?1", report.id);
             report.delete();
+
+            reportCache.evictReportId(trackingId);
+
             logger.info("Report %s and all its entries have been cleared.", trackingId);
         }
     }
