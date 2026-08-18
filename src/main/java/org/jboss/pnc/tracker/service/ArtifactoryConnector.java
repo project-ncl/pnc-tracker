@@ -175,7 +175,7 @@ public class ArtifactoryConnector {
 
             spec = new FileSpecBuilder()
                     .item("type", "file")
-                    .match("repo", artifactoryProject + "-*-" + trackingId)
+                    .match("repo", artifactoryProject + "-*")
                     .eq("property.key", trackPropName)
                     .include("name", "repo", "path", "size", "actual_sha1", "actual_md5", "sha256")
                     // TODO: Handle pagination
