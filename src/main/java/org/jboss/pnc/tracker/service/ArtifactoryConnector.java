@@ -38,6 +38,8 @@ public class ArtifactoryConnector {
 
     private static final String BUILD_PROPERTY_PREFIX = "pnc.";
 
+    private static final String REMOTE_CACHE_SUFFIX = "-cache";
+
     /** Safety ceiling — no single build should exceed this. */
     private static final int AQL_RESULT_LIMIT = 50000;
 
@@ -85,6 +87,9 @@ public class ArtifactoryConnector {
      */
     public DbPackageType fetchPackageType(String project, String name) {
         String repoKey = project + "-" + name;
+        if (repoKey.endsWith(REMOTE_CACHE_SUFFIX)) {
+            repoKey = repoKey.substring(0, repoKey.length() - REMOTE_CACHE_SUFFIX.length());
+        }
 
         try {
             RepositoryHandle repositoryHandle = artifactory.repositories().repository(repoKey);
