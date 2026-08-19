@@ -191,7 +191,7 @@ public class ReportService {
                     insertedCount++;
                 }
             }
-            logger.info("Successfully persisted %d / %d entries via native SQL for report %s",
+            logger.info("Successfully persisted {} / {} entries via native SQL for report %s",
                     insertedCount, entries.size(), trackingId);
         }
 
@@ -333,7 +333,7 @@ public class ReportService {
 
             logger.info("Report %s and all its entries have been cleared.", trackingId);
         } catch (ReportNotFoundException e) {
-            logger.debug("Attempted to clear non-existent tracking report: %s. Skipping.", trackingId);
+            logger.debug("Attempted to clear non-existent tracking report: {}. Skipping.", trackingId);
         }
     }
 
