@@ -324,17 +324,16 @@ public class ReportService {
      */
     @Transactional
     public void clearReport(String trackingId) {
-        DbTrackingReport report = getReport(trackingId);
-
-        if (report == null) {
-            logger.debug("Attempted to clear non-existent tracking report: %s. Skipping.", trackingId);
-        } else {
+        try {
+            DbTrackingReport report = getReport(trackingId);
             DbTrackedEntry.delete("report.id = ?1", report.id);
             report.delete();
 
             reportCache.evictReportId(trackingId);
 
             logger.info("Report %s and all its entries have been cleared.", trackingId);
+        } catch (ReportNotFoundException e) {
+            logger.debug("Attempted to clear non-existent tracking report: %s. Skipping.", trackingId);
         }
     }
 
