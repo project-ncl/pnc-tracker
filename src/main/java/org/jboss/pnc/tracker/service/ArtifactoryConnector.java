@@ -190,7 +190,10 @@ public class ArtifactoryConnector {
             DbTrackingReport reportRef = new DbTrackingReport(reportCache.getReportId(trackingId), trackingId);
             Map<String, DbRepository> repoMap = new HashMap<>();
             String project = artifactoryProject.get();
-            String localBaseUrl = internalBaseUrl.isPresent() ? internalBaseUrl.get() : baseUrl.get();
+            String localBaseUrl = internalBaseUrl
+                    .or(() -> baseUrl)
+                    .map(url -> url.replaceAll("/+$", ""))
+                    .orElseThrow(() -> new IllegalStateException("Artifactory base URL is not configured"));
             for (AqlItem item : items) {
                 try {
                     DbTrackedEntry entry = convertAqlItemToEntity(
