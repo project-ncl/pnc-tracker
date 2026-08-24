@@ -27,6 +27,8 @@ quarkus:
       min-size: 2
       max-size: 10
       acquisition-timeout: 5s
+      additional-jdbc-properties:
+        reWriteBatchedInserts: true
   index-dependency:
     pnc-api:
       group-id: org.jboss.pnc

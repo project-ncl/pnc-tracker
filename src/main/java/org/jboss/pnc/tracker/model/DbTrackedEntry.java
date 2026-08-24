@@ -4,10 +4,14 @@
  */
 package org.jboss.pnc.tracker.model;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.Session;
+import org.jboss.logging.Logger;
 
 import io.quarkus.hibernate.orm.panache.Panache;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
@@ -30,6 +34,8 @@ import jakarta.persistence.UniqueConstraint;
                 name = "uq_build_repo_operation_path",
                 columnNames = { "report_id", "repository_id", "store_effect", "path" }))
 public class DbTrackedEntry extends PanacheEntity {
+
+    private static final Logger logger = Logger.getLogger(DbTrackedEntry.class);
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "report_id", nullable = false)
@@ -99,6 +105,93 @@ public class DbTrackedEntry extends PanacheEntity {
             .setParameter("size", this.size)
             .setParameter("timestamp", this.timestamp)
             .executeUpdate() == 1; // when 1 is returned, it persisted successfully
+    }
+
+    /**
+     * Efficiently persists a list of {@link DbTrackedEntry} records into the database using direct JDBC batch
+     * processing.
+     * <p>
+     * This method bypasses the Hibernate Persistence Context to prevent memory bloat when inserting large volumes of
+     * data. Duplicate records violating the {@code uq_build_repo_operation_path} constraint are silently skipped.
+     * <p>
+     * <b>Note:</b> Unlike {@code persistIfActive()}, this method does not check the status of the associated report. It
+     * assumes the caller has already verified that the report is in a valid state (e.g., {@code IN_PROGRESS}) prior to
+     * invocation.
+     *
+     * @param entries the list of tracked entries to persist; can be {@code null} or empty
+     * @return the total count of newly inserted records (excluding skipped duplicates)
+     */
+    public static int persistBatch(List<DbTrackedEntry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return 0;
+        }
+
+        return getEntityManager().unwrap(Session.class).doReturningWork(connection -> {
+            String sql = """
+                INSERT INTO tracked_entry
+                    (id, report_id, repository_id, path, origin_url, local_url, store_effect, md5, sha1, sha256, size, timestamp)
+                VALUES
+                    (nextval('tracked_entry_SEQ'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
+                """;
+
+            int totalInserted = 0;
+            int totalProcessed = 0;
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                int batchCount = 0;
+                int batchStartIndex = 0;
+
+                for (int i = 0; i < entries.size(); i++) {
+                    DbTrackedEntry entry = entries.get(i);
+                    ps.setLong(1, entry.report.id);
+                    ps.setLong(2, entry.repository.id);
+                    ps.setString(3, entry.path);
+                    ps.setString(4, entry.originUrl);
+                    ps.setString(5, entry.localUrl);
+                    ps.setString(6, entry.storeEffect.getDbCode());
+                    ps.setString(7, entry.md5);
+                    ps.setString(8, entry.sha1);
+                    ps.setString(9, entry.sha256);
+                    ps.setLong(10, entry.size);
+                    ps.setTimestamp(11, Timestamp.valueOf(entry.timestamp));
+
+                    ps.addBatch();
+                    batchCount++;
+
+                    // Batching by 1000 records
+                    if (batchCount % 1000 == 0 || i == entries.size() - 1) {
+                        int batchStart = totalProcessed + 1;
+                        totalProcessed += batchCount;
+                        logger.infof(
+                                "Executing insert batch %d - %d / %d records...",
+                                batchStart,
+                                totalProcessed,
+                                entries.size());
+
+                        int[] results = ps.executeBatch();
+
+
+                        // Evaluating the rows in the batch
+                        for (int j = 0; j < results.length; j++) {
+                            DbTrackedEntry batchEntry = entries.get(batchStartIndex + j);
+                            int status = results[j];
+
+                            if (status == 1 || status == Statement.SUCCESS_NO_INFO) {
+                                totalInserted++;
+                            } else if (status == 0) {
+                                logger.debugf("Skipped duplicate entry: path=%s, repositoryId=%d",
+                                        batchEntry.path, batchEntry.repository.id);
+                            }
+                        }
+
+                        batchStartIndex = i + 1;
+                        batchCount = 0;
+                    }
+                }
+            }
+            return totalInserted;
+        });
     }
 
     /**
