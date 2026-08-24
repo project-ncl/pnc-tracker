@@ -185,13 +185,9 @@ public class ReportService {
         }
 
         if (!entries.isEmpty()) {
-            int insertedCount = 0;
-            for (DbTrackedEntry entry : entries) {
-                if (entry.persistIfActive()) {
-                    insertedCount++;
-                }
-            }
-            logger.info("Successfully persisted {} / {} entries via native SQL for report %s",
+            logger.info("Persisting {} entries for report %s...", entries.size(), trackingId);
+            int insertedCount = DbTrackedEntry.persistBatch(entries);
+            logger.info("Successfully persisted {} / {} entries for report %s",
                     insertedCount, entries.size(), trackingId);
         }
 
