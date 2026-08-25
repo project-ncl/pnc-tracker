@@ -16,7 +16,7 @@ import org.jboss.pnc.tracker.model.DbTrackingReportState;
 
 import java.util.List;
 
-import org.slf4j.Logger;
+import org.jboss.logging.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -39,7 +39,7 @@ import jakarta.transaction.Transactional;
 @ApplicationScoped
 public class ReportService {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = Logger.getLogger(getClass());
 
     @Inject
     ReportCache reportCache;
@@ -139,12 +139,12 @@ public class ReportService {
         DbTrackingReport trackingReport = getReport(trackingId);
 
         if (trackingReport.state == DbTrackingReportState.SEALED) {
-            logger.debug("Tracking report: {} already sealed! Returning sealed report.", trackingId);
+            logger.debugf("Tracking report: %s already sealed! Returning sealed report.", trackingId);
             return trackingReport;
         }
         if (trackingReport.state == DbTrackingReportState.CORRUPTED) {
             throw new ReportDataConflictException(
-                    "Tracking report: {} is CORRUPTED, so it cannot be sealed!", trackingId);
+                    "Tracking report: %s is CORRUPTED, so it cannot be sealed!", trackingId);
         }
 
         List<DbTrackedEntry> fetchedEntries = List.of();
@@ -185,10 +185,23 @@ public class ReportService {
         }
 
         if (!entries.isEmpty()) {
-            logger.info("Persisting {} entries for report %s...", entries.size(), trackingId);
+            logger.infof("Persisting %d entries for report %s...", entries.size(), trackingId);
+
+            long startTime = System.currentTimeMillis();
             int insertedCount = DbTrackedEntry.persistBatch(entries);
-            logger.info("Successfully persisted {} / {} entries for report %s",
-                    insertedCount, entries.size(), trackingId);
+            long duration = System.currentTimeMillis() - startTime;
+
+            int skippedCount = entries.size() - insertedCount;
+            double throughput = duration > 0 ? (entries.size() / (duration / 1000.0)) : entries.size();
+
+            logger.infof(
+                    "Report %s entries persisted in %d ms (total: %d, inserted: %d, skipped: %d, speed: %.0f rec/s)",
+                    trackingId,
+                    duration,
+                    entries.size(),
+                    insertedCount,
+                    skippedCount,
+                    throughput);
         }
 
         trackingReport.state = DbTrackingReportState.SEALED;
@@ -245,8 +258,8 @@ public class ReportService {
         }
 
         if (report.state == DbTrackingReportState.IN_PROGRESS) {
-            logger.debug(
-                    "Entry for path {} in repository {} already exists in report {}. Skipping duplicate.",
+            logger.debugf(
+                    "Entry for path %s in repository %d already exists in report %d. Skipping duplicate.",
                     entry.path,
                     entry.repository.id,
                     entry.report.id);
@@ -273,7 +286,7 @@ public class ReportService {
             newReport.trackingId = trackingId;
             newReport.state = DbTrackingReportState.IN_PROGRESS;
             newReport.persist();
-            logger.info("New tracking report {} initialized.", trackingId);
+            logger.infof("New tracking report %s initialized.", trackingId);
         } else {
             // Handle existing report logic
             if (existingReport.state != DbTrackingReportState.IN_PROGRESS) {
@@ -286,7 +299,7 @@ public class ReportService {
                         trackingId);
             }
 
-            logger.debug("Report {} already exists and is empty. Skipping initialization.", trackingId);
+            logger.debugf("Report %s already exists and is empty. Skipping initialization.", trackingId);
         }
     }
 
@@ -327,9 +340,9 @@ public class ReportService {
 
             reportCache.evictReportId(trackingId);
 
-            logger.info("Report %s and all its entries have been cleared.", trackingId);
+            logger.infof("Report %s and all its entries have been cleared.", trackingId);
         } catch (ReportNotFoundException e) {
-            logger.debug("Attempted to clear non-existent tracking report: {}. Skipping.", trackingId);
+            logger.debugf("Attempted to clear non-existent tracking report: %s. Skipping.", trackingId);
         }
     }
 
