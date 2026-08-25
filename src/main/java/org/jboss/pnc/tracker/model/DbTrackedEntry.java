@@ -163,7 +163,7 @@ public class DbTrackedEntry extends PanacheEntity {
                     if (batchCount % 1000 == 0 || i == entries.size() - 1) {
                         int batchStart = totalProcessed + 1;
                         totalProcessed += batchCount;
-                        logger.infof(
+                        logger.debugf(
                                 "Executing insert batch %d - %d / %d records...",
                                 batchStart,
                                 totalProcessed,
