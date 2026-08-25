@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -185,7 +186,7 @@ public class ArtifactoryConnector {
             List<AqlItem> items = artifactory.searches().artifactsByFileSpec(spec);
             logger.debugf("AQL query returned %d items for tracking ID %s", items.size(), trackingId);
 
-            List<DbTrackedEntry> entries = new ArrayList<>(items.size());
+            Map<String, DbTrackedEntry> entriesMap = new LinkedHashMap<>(items.size());
 
             DbTrackingReport reportRef = new DbTrackingReport(reportCache.getReportId(trackingId), trackingId);
             Map<String, DbRepository> repoMap = new HashMap<>();
@@ -203,19 +204,38 @@ public class ArtifactoryConnector {
                             localBaseUrl,
                             repoMap,
                             trackPropName);
-                    entries.add(entry);
+
+                    String compositeKey = entry.repository.id + ":" + entry.storeEffect + ":" + entry.path;
+                    entriesMap.compute(compositeKey, (key, existing) -> {
+                        if (existing == null) {
+                            return entry;
+                        }
+                        if (hasOriginUrl(entry) && !hasOriginUrl(existing)) {
+                            return entry;
+                        }
+                        return existing;
+                    });
                 } catch (Exception e) {
                     logger.warnf("Failed to convert AqlItem (%s/%s): %s", item.getRepo(), item.getName(), e.getMessage());
                 }
             }
 
-            logger.infof("Successfully fetched and converted %d entries for tracking ID: %s", entries.size(), trackingId);
-            return entries;
+            List<DbTrackedEntry> entries = new ArrayList<>(entriesMap.values());
 
+            logger.infof(
+                    "Successfully fetched and converted %d entries (%d after de-duplication) for tracking ID: %s",
+                    items.size(),
+                    entries.size(),
+                    trackingId);
+            return entries;
         } catch (Exception e) {
             logger.errorf(e, "Failed to fetch entries from Artifactory for tracking ID: %s", trackingId);
             throw new IllegalStateException("Failed to retrieve tracking report from Artifactory for: " + trackingId, e);
         }
+    }
+
+    private boolean hasOriginUrl(DbTrackedEntry entry) {
+        return entry.originUrl != null && !entry.originUrl.isBlank();
     }
 
     /**
