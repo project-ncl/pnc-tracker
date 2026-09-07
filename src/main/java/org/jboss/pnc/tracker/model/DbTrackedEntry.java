@@ -45,7 +45,7 @@ public class DbTrackedEntry extends PanacheEntity {
     @JoinColumn(name = "repository_id", nullable = false)
     public DbRepository repository;
 
-    @Column(name = "path", nullable = false)
+    @Column(name = "path", nullable = false, length = 4096)
     public String path;
 
     @Column(name = "origin_url", length = 2048)
@@ -57,13 +57,13 @@ public class DbTrackedEntry extends PanacheEntity {
     @Column(name = "store_effect", columnDefinition = "char(1)", nullable = false)
     public DbStoreEffect storeEffect;
 
-    @Column(name = "md5", nullable = false)
+    @Column(name = "md5", nullable = false, length = 32)
     public String md5;
 
-    @Column(name = "sha1", nullable = false)
+    @Column(name = "sha1", nullable = false, length = 40)
     public String sha1;
 
-    @Column(name = "sha256", nullable = false)
+    @Column(name = "sha256", nullable = false, length = 64)
     public String sha256;
 
     @Column(name = "size", nullable = false)
