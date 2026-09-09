@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -67,11 +68,13 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
+    @RolesAllowed({"pnc-app-tracker-report-init", "pnc-user-admin"})
     public void initReport(final String trackingId) {
         reportService.initReport(trackingId);
     }
 
     @Override
+    @RolesAllowed({"pnc-app-tracker-track", "pnc-user-admin"})
     public void trackUpload(String trackingId, TrackUploadRequest request) {
         DbTrackedEntry entry = mapToEntity(request);
         entry.storeEffect = DbStoreEffect.UPLOAD;
@@ -81,6 +84,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
+    @RolesAllowed({"pnc-app-tracker-track", "pnc-user-admin"})
     public void trackDownload(String trackingId, TrackDownloadRequest request) {
         DbTrackedEntry entry = mapToEntity(request);
         entry.originUrl = request.getOriginUrl();
@@ -109,6 +113,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
+    @RolesAllowed({"pnc-app-tracker-report-seal", "pnc-user-admin"})
     public void sealReport(String trackingId) {
         reportService.sealReport(trackingId);
     }
@@ -195,6 +200,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
+    @RolesAllowed({"pnc-app-tracker-report-clear", "pnc-user-admin"})
     public void clearReport(final String trackingId) {
         reportService.clearReport(trackingId);
     }
