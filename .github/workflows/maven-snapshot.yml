@@ -8,7 +8,7 @@ on:
 
 jobs:
     call-snapshot-job:
-      uses: project-ncl/shared-github-actions/.github/workflows/maven-snapshot.yml@a27e6fba6b28bbb96881ec096e9c8ea5a538f481 # v0.0.22
+      uses: project-ncl/shared-github-actions/.github/workflows/maven-snapshot.yml@f0ec1696c5dfea0d6d16c135c14f54049b94edaf # v0.0.24
       with:
         project_name: 'project-ncl/pnc-tracker'
         quarkus_jib_image: true
