@@ -203,7 +203,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-report-clear", "pnc-users-admin"})
+    @RolesAllowed({"pnc-app-tracker-report-admin", "pnc-app-tracker-report-clear", "pnc-users-admin"})
     public void clearReport(final String trackingId) {
         reportService.clearReport(trackingId);
     }
