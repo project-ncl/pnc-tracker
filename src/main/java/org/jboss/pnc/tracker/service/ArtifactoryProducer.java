@@ -4,19 +4,18 @@
  */
 package org.jboss.pnc.tracker.service;
 
-import org.jboss.pnc.tracker.exception.TrackerException;
-
 import java.util.Optional;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jfrog.artifactory.client.Artifactory;
-import org.jfrog.artifactory.client.ArtifactoryClientBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.Produces;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.pnc.tracker.exception.TrackerException;
+import org.jfrog.artifactory.client.Artifactory;
+import org.jfrog.artifactory.client.ArtifactoryClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ArtifactoryProducer {
@@ -36,8 +35,7 @@ public class ArtifactoryProducer {
     public Artifactory produce() throws TrackerException {
         if (url.isEmpty() || url.get().isBlank() || accessToken.isEmpty() || accessToken.get().isBlank()) {
             throw new IllegalStateException(
-                    "Artifactory is not configured. Please set 'tracker.artifactory.url' and 'tracker.artifactory.access-token'."
-            );
+                    "Artifactory is not configured. Please set 'tracker.artifactory.url' and 'tracker.artifactory.access-token'.");
         }
 
         String artifactoryUrl = url.get();

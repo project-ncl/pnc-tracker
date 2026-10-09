@@ -4,12 +4,13 @@
  */
 package org.jboss.pnc.tracker.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import org.jboss.pnc.tracker.exception.ReportNotFoundException;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
 
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheResult;
-import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ReportCache {

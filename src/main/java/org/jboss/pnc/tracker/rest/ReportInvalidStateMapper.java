@@ -4,11 +4,11 @@
  */
 package org.jboss.pnc.tracker.rest;
 
-import org.jboss.pnc.tracker.exception.ReportInvalidStateException;
-
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+
+import org.jboss.pnc.tracker.exception.ReportInvalidStateException;
 
 /**
  * Provider that maps a {@link ReportInvalidStateException} to an HTTP 409 Conflict response.

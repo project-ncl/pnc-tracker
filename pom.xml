@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     Copyright 2022-2026 Red Hat, Inc.
@@ -6,241 +6,276 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.jboss</groupId>
-        <artifactId>jboss-parent</artifactId>
-        <version>54</version>
-        <relativePath/>
-    </parent>
+  <parent>
+    <groupId>org.jboss</groupId>
+    <artifactId>jboss-parent</artifactId>
+    <version>54</version>
+    <relativePath/>
+  </parent>
 
-    <groupId>org.jboss.pnc.tracker</groupId>
-    <artifactId>pnc-tracker</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
-    <inceptionYear>2022</inceptionYear>
+  <groupId>org.jboss.pnc.tracker</groupId>
+  <artifactId>pnc-tracker</artifactId>
+  <version>3.0.0-SNAPSHOT</version>
 
-    <name>PNC :: Tracker</name>
-    <description>PNC Tracker</description>
+  <name>PNC :: Tracker</name>
+  <description>PNC Tracker</description>
+  <url>https://github.com/project-ncl/pnc-tracker</url>
+  <inceptionYear>2022</inceptionYear>
+
+  <scm>
+    <connection>scm:git:https://github.com/project-ncl/pnc-tracker</connection>
+    <developerConnection>scm:git:https://github.com/project-ncl/pnc-tracker</developerConnection>
+    <tag>HEAD</tag>
     <url>https://github.com/project-ncl/pnc-tracker</url>
+  </scm>
 
-    <scm>
-        <connection>scm:git:https://github.com/project-ncl/pnc-tracker</connection>
-        <developerConnection>scm:git:https://github.com/project-ncl/pnc-tracker</developerConnection>
-        <url>https://github.com/project-ncl/pnc-tracker</url>
-        <tag>HEAD</tag>
-    </scm>
+  <properties>
+    <maven.compiler.parameters>true</maven.compiler.parameters>
+    <maven.compiler.release>21</maven.compiler.release>
+    <jdk.min.version>${maven.compiler.release}</jdk.min.version>
 
-    <properties>
-        <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.release>21</maven.compiler.release>
-        <jdk.min.version>${maven.compiler.release}</jdk.min.version>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.version>3.39.5</quarkus.platform.version>
 
-        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>3.39.5</quarkus.platform.version>
+    <apiVersion>1</apiVersion>
+    <pnc-api.version>3.6.0-SNAPSHOT</pnc-api.version>
+    <artifactory-client.version>2.22.3</artifactory-client.version>
 
-        <apiVersion>1</apiVersion>
-        <pnc-api.version>3.6.0-SNAPSHOT</pnc-api.version>
-        <artifactory-client.version>2.22.3</artifactory-client.version>
+    <jib.base.image.version>1.24-7</jib.base.image.version>
+    <jib.base.image.digest>sha256:5ee73448f86838eecff13f80512b49ff6ea0fa21aaf5d1fa8afe3402fc965e9e</jib.base.image.digest>
+  </properties>
 
-        <jib.base.image.version>1.24-7</jib.base.image.version>
-        <jib.base.image.digest>sha256:5ee73448f86838eecff13f80512b49ff6ea0fa21aaf5d1fa8afe3402fc965e9e</jib.base.image.digest>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>${quarkus.platform.group-id}</groupId>
-                <artifactId>${quarkus.platform.artifact-id}</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.jboss.pnc.artifactory-client</groupId>
-                <artifactId>artifactory-java-client-services</artifactId>
-                <version>${artifactory-client.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
+  <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.jboss.pnc</groupId>
-            <artifactId>pnc-api</artifactId>
-            <version>${pnc-api.version}</version>
-            <classifier>jakarta</classifier>
-        </dependency>
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>${quarkus.platform.artifact-id}</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
-        <!-- quarkus deps start -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-vertx</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-health</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-openapi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-smallrye-context-propagation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-config-yaml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-jackson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-postgresql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-elytron-security-ldap</artifactId>
-        </dependency>
-
-        <!-- Quarkus Jib -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-container-image-jib</artifactId>
-        </dependency>
-
-        <!-- quarkus otel -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-micrometer-opentelemetry</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.pnc.artifactory-client</groupId>
-            <artifactId>artifactory-java-client-services</artifactId>
-        </dependency>
+      <dependency>
+        <groupId>org.jboss.pnc.artifactory-client</groupId>
+        <artifactId>artifactory-java-client-services</artifactId>
+        <version>${artifactory-client.version}</version>
+      </dependency>
     </dependencies>
+  </dependencyManagement>
 
-    <repositories>
-        <repository>
-            <name>Central Portal Snapshots</name>
-            <id>central-portal-snapshots</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>io.quarkus.platform</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <configuration>
-                    <finalName>pnc-tracker</finalName>
-                    <!-- needed to publish to maven central -->
-                    <skipOriginalJarRename>true</skipOriginalJarRename>
-                    <systemProperties>
-                        <quarkus.jib.base-jvm-image>
-                            registry.access.redhat.com/ubi10/openjdk-21-runtime:${jib.base.image.version}@${jib.base.image.digest}
-                        </quarkus.jib.base-jvm-image>
-                    </systemProperties>
-                </configuration>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>generate-code</goal>
-                            <goal>generate-code-tests</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>ru.concerteza.buildnumber</groupId>
-                <artifactId>maven-jgit-buildnumber-plugin</artifactId>
-                <version>1.2.10</version>
-                <executions>
-                    <execution>
-                        <id>git-buildnumber</id>
-                        <goals>
-                            <goal>extract-buildnumber</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <version>5.1.2</version>
-                <configuration>
-                    <header>license-header.txt</header>
-                    <includes>
-                        <include>pom.xml</include>
-                        <include>src/main/java/**/*.java</include>
-                        <include>src/test/java/**/*.java</include>
-                    </includes>
-                    <excludes>
-                        <exclude>target/**</exclude>
-                        <exclude>.mvn/**</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <phase>validate</phase>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-    <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <properties>
-                <skipITs>false</skipITs>
-                <quarkus.package.type>native</quarkus.package.type>
-            </properties>
-        </profile>
-    </profiles>
+  <dependencies>
+    <dependency>
+      <groupId>org.jboss.pnc</groupId>
+      <artifactId>pnc-api</artifactId>
+      <version>${pnc-api.version}</version>
+      <classifier>jakarta</classifier>
+    </dependency>
+
+    <!-- quarkus deps start -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-vertx</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-context-propagation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-config-yaml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-orm-panache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-cache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-elytron-security-ldap</artifactId>
+    </dependency>
+
+    <!-- Quarkus Jib -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-container-image-jib</artifactId>
+    </dependency>
+
+    <!-- quarkus otel -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-micrometer-opentelemetry</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.pnc.artifactory-client</groupId>
+      <artifactId>artifactory-java-client-services</artifactId>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>central-portal-snapshots</id>
+      <name>Central Portal Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+    </repository>
+  </repositories>
+
+  <build>
+    <resources>
+      <resource>
+        <filtering>true</filtering>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>io.quarkus.platform</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <finalName>pnc-tracker</finalName>
+          <!-- needed to publish to maven central -->
+          <skipOriginalJarRename>true</skipOriginalJarRename>
+          <systemProperties>
+            <quarkus.jib.base-jvm-image>registry.access.redhat.com/ubi10/openjdk-21-runtime:${jib.base.image.version}@${jib.base.image.digest}</quarkus.jib.base-jvm-image>
+          </systemProperties>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+              <goal>generate-code</goal>
+              <goal>generate-code-tests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>ru.concerteza.buildnumber</groupId>
+        <artifactId>maven-jgit-buildnumber-plugin</artifactId>
+        <version>1.2.10</version>
+        <executions>
+          <execution>
+            <id>git-buildnumber</id>
+            <goals>
+              <goal>extract-buildnumber</goal>
+            </goals>
+            <phase>initialize</phase>
+            <configuration>
+              <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>5.1.2</version>
+        <configuration>
+          <header>license-header.txt</header>
+          <includes>
+            <include>pom.xml</include>
+            <include>src/main/java/**/*.java</include>
+            <include>src/test/java/**/*.java</include>
+          </includes>
+          <excludes>
+            <exclude>target/**</exclude>
+            <exclude>.mvn/**</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>3.10.3</version>
+        <configuration>
+          <pom>
+            <sortPom>
+              <expandEmptyElements>false</expandEmptyElements>
+            </sortPom>
+          </pom>
+          <java>
+            <removeUnusedImports/>
+            <importOrder>
+              <file>java-import-order.txt</file>
+            </importOrder>
+            <eclipse>
+              <file>java-formatter.xml</file>
+            </eclipse>
+            <lineEndings>UNIX</lineEndings>
+          </java>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.jboss.pnc</groupId>
+            <artifactId>ide-config</artifactId>
+            <version>1.1.0</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>native</id>
+      <activation>
+        <property>
+          <name>native</name>
+        </property>
+      </activation>
+      <properties>
+        <skipITs>false</skipITs>
+        <quarkus.package.type>native</quarkus.package.type>
+      </properties>
+    </profile>
+  </profiles>
 </project>

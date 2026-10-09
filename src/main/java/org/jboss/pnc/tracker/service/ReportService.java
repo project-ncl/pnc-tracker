@@ -4,24 +4,22 @@
  */
 package org.jboss.pnc.tracker.service;
 
-import org.jboss.pnc.tracker.exception.ReportDataConflictException;
-import org.jboss.pnc.tracker.exception.ReportInvalidStateException;
-import org.jboss.pnc.tracker.exception.ReportNotFoundException;
-import org.jboss.pnc.tracker.model.DbTrackedEntry;
-import org.jboss.pnc.tracker.model.DbTrackingReport;
-import org.jboss.pnc.tracker.model.DbRepository;
-import org.jboss.pnc.tracker.model.DbStoreEffect;
-import org.jboss.pnc.tracker.model.TrackedEntryProjection;
-import org.jboss.pnc.tracker.model.DbTrackingReportState;
-
 import java.util.List;
-
-import org.jboss.logging.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+
+import org.jboss.logging.Logger;
+import org.jboss.pnc.tracker.exception.ReportDataConflictException;
+import org.jboss.pnc.tracker.exception.ReportInvalidStateException;
+import org.jboss.pnc.tracker.exception.ReportNotFoundException;
+import org.jboss.pnc.tracker.model.DbRepository;
+import org.jboss.pnc.tracker.model.DbStoreEffect;
+import org.jboss.pnc.tracker.model.DbTrackedEntry;
+import org.jboss.pnc.tracker.model.DbTrackingReport;
+import org.jboss.pnc.tracker.model.DbTrackingReportState;
+import org.jboss.pnc.tracker.model.TrackedEntryProjection;
 
 /**
  * Service responsible for orchestrating tracking reports and their associated entries.
@@ -144,7 +142,8 @@ public class ReportService {
         }
         if (trackingReport.state == DbTrackingReportState.CORRUPTED) {
             throw new ReportDataConflictException(
-                    "Tracking report: %s is CORRUPTED, so it cannot be sealed!", trackingId);
+                    "Tracking report: %s is CORRUPTED, so it cannot be sealed!",
+                    trackingId);
         }
 
         List<DbTrackedEntry> fetchedEntries = List.of();
@@ -180,8 +179,7 @@ public class ReportService {
         }
         if (trackingReport.state == DbTrackingReportState.CORRUPTED) {
             throw new ReportDataConflictException(
-                    "Report %s became CORRUPTED during processing and cannot be sealed.".formatted(trackingId)
-            );
+                    "Report %s became CORRUPTED during processing and cannot be sealed.".formatted(trackingId));
         }
 
         if (!entries.isEmpty()) {
@@ -290,12 +288,15 @@ public class ReportService {
         } else {
             // Handle existing report logic
             if (existingReport.state != DbTrackingReportState.IN_PROGRESS) {
-                throw new ReportDataConflictException("Report %s is in terminal state: %s",
-                        trackingId, existingReport.state);
+                throw new ReportDataConflictException(
+                        "Report %s is in terminal state: %s",
+                        trackingId,
+                        existingReport.state);
             }
 
             if (DbTrackingReport.hasEntries(trackingId)) {
-                throw new ReportDataConflictException("Report %s is already active and contains entries.",
+                throw new ReportDataConflictException(
+                        "Report %s is already active and contains entries.",
                         trackingId);
             }
 
@@ -310,7 +311,8 @@ public class ReportService {
      * only identifiers for reports matching the specified state are retrieved.
      * </p>
      *
-     * @param state the {@link DbTrackingReportState} to filter by, or {@code null} to retrieve all available identifiers.
+     * @param state the {@link DbTrackingReportState} to filter by, or {@code null} to retrieve all available
+     *        identifiers.
      * @return a {@link List} of tracking identifier strings.
      */
     public List<String> getTrackingIds(DbTrackingReportState state) {

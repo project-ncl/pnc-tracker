@@ -4,11 +4,11 @@
  */
 package org.jboss.pnc.tracker.rest;
 
-import org.jboss.pnc.tracker.exception.ReportDataConflictException;
-
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+
+import org.jboss.pnc.tracker.exception.ReportDataConflictException;
 
 /**
  * Provider that maps a {@link ReportDataConflictException} to an HTTP 409 Conflict response.

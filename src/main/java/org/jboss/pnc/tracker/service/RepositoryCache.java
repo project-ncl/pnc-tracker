@@ -4,13 +4,14 @@
  */
 package org.jboss.pnc.tracker.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
 import org.jboss.pnc.tracker.model.DbPackageType;
 import org.jboss.pnc.tracker.model.DbRepository;
 
 import io.quarkus.cache.CacheResult;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 @ApplicationScoped
 public class RepositoryCache {
@@ -21,8 +22,8 @@ public class RepositoryCache {
     @CacheResult(cacheName = "repo-metadata-idx")
     public Long getOrCreateRepositoryId(String project, String name) {
         DbRepository meta = DbRepository
-            .find("project = ?1 and name = ?2", project, name)
-            .firstResult();
+                .find("project = ?1 and name = ?2", project, name)
+                .firstResult();
         if (meta != null) {
             return meta.id;
         }

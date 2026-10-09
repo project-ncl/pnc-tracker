@@ -4,12 +4,6 @@
  */
 package org.jboss.pnc.tracker.service;
 
-import org.jboss.pnc.tracker.model.DbPackageType;
-import org.jboss.pnc.tracker.model.DbRepository;
-import org.jboss.pnc.tracker.model.DbStoreEffect;
-import org.jboss.pnc.tracker.model.DbTrackedEntry;
-import org.jboss.pnc.tracker.model.DbTrackingReport;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -21,18 +15,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
+import org.jboss.pnc.tracker.model.DbPackageType;
+import org.jboss.pnc.tracker.model.DbRepository;
+import org.jboss.pnc.tracker.model.DbStoreEffect;
+import org.jboss.pnc.tracker.model.DbTrackedEntry;
+import org.jboss.pnc.tracker.model.DbTrackingReport;
 import org.jfrog.artifactory.client.Artifactory;
 import org.jfrog.artifactory.client.RepositoryHandle;
-import org.jfrog.artifactory.client.model.AqlItem;
 import org.jfrog.artifactory.client.aql.FileSpecBuilder;
+import org.jfrog.artifactory.client.model.AqlItem;
 import org.jfrog.artifactory.client.model.PackageType;
 import org.jfrog.artifactory.client.model.Repository;
 import org.jfrog.filespecs.FileSpec;
-import org.jboss.logging.Logger;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ArtifactoryConnector {
@@ -148,9 +147,8 @@ public class ArtifactoryConnector {
         logger.infof("Querying Artifactory AQL for tracking report: %s (property: %s)", trackingId, trackPropName);
 
         // verify the artifactory project is configured
-        artifactoryProject.orElseThrow(() ->
-            new IllegalStateException("tracker.artifactory.project must be set when pull-data is enabled")
-        );
+        artifactoryProject.orElseThrow(
+                () -> new IllegalStateException("tracker.artifactory.project must be set when pull-data is enabled"));
 
         try {
             // Build single AQL FileSpec search query combining build repo and shared repos
@@ -216,7 +214,11 @@ public class ArtifactoryConnector {
                         return existing;
                     });
                 } catch (Exception e) {
-                    logger.warnf("Failed to convert AqlItem (%s/%s): %s", item.getRepo(), item.getName(), e.getMessage());
+                    logger.warnf(
+                            "Failed to convert AqlItem (%s/%s): %s",
+                            item.getRepo(),
+                            item.getName(),
+                            e.getMessage());
                 }
             }
 
@@ -230,7 +232,9 @@ public class ArtifactoryConnector {
             return entries;
         } catch (Exception e) {
             logger.errorf(e, "Failed to fetch entries from Artifactory for tracking ID: %s", trackingId);
-            throw new IllegalStateException("Failed to retrieve tracking report from Artifactory for: " + trackingId, e);
+            throw new IllegalStateException(
+                    "Failed to retrieve tracking report from Artifactory for: " + trackingId,
+                    e);
         }
     }
 
@@ -258,7 +262,8 @@ public class ArtifactoryConnector {
         }
 
         // Classify effect: If repoKey contains build/tracking ID -> UPLOAD, otherwise -> DOWNLOAD
-        DbStoreEffect storeEffect = repoKey.contains(reportRef.trackingId) ? DbStoreEffect.UPLOAD : DbStoreEffect.DOWNLOAD;
+        DbStoreEffect storeEffect = repoKey.contains(reportRef.trackingId) ? DbStoreEffect.UPLOAD
+                : DbStoreEffect.DOWNLOAD;
 
         // Construct normalized relative path
         String path = normalizePath(item.getPath(), item.getName());
@@ -300,7 +305,8 @@ public class ArtifactoryConnector {
             return fallbackTimestamp(item);
         }
 
-        String rawValue = item.getProperties().stream()
+        String rawValue = item.getProperties()
+                .stream()
                 .filter(p -> trackPropName.equalsIgnoreCase(p.getkey()))
                 .map(AqlItem.Property::getValue)
                 .filter(v -> v != null && !v.isBlank())
@@ -327,7 +333,11 @@ public class ArtifactoryConnector {
             return LocalDateTime.parse(rawValue, DateTimeFormatter.ISO_DATE_TIME);
 
         } catch (Exception e) {
-            logger.warnf("Failed to parse timestamp property '%s' (value: '%s'): %s", trackPropName, rawValue, e.getMessage());
+            logger.warnf(
+                    "Failed to parse timestamp property '%s' (value: '%s'): %s",
+                    trackPropName,
+                    rawValue,
+                    e.getMessage());
             return fallbackTimestamp(item);
         }
     }
@@ -337,7 +347,8 @@ public class ArtifactoryConnector {
      */
     private LocalDateTime fallbackTimestamp(AqlItem item) {
         if (item.getCreated() != null) { //
-            return item.getCreated().toInstant()
+            return item.getCreated()
+                    .toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
         }
@@ -368,7 +379,8 @@ public class ArtifactoryConnector {
         if (item.getProperties() == null) {
             return null;
         }
-        return item.getProperties().stream()
+        return item.getProperties()
+                .stream()
                 .filter(p -> "jf.origin.remote.path".equals(p.getkey()))
                 .map(AqlItem.Property::getValue)
                 .filter(v -> v != null && !v.isEmpty())

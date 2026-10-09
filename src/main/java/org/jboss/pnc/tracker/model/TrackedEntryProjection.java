@@ -7,16 +7,16 @@ package org.jboss.pnc.tracker.model;
 import java.time.LocalDateTime;
 
 public record TrackedEntryProjection(
-    String project,
-    String name,
-    DbPackageType packageType,
-    String path,
-    String originUrl,
-    String localUrl,
-    DbStoreEffect storeEffect,
-    String md5,
-    String sha1,
-    String sha256,
-    Long size,
-    LocalDateTime timestamp
-) {}
+        String project,
+        String name,
+        DbPackageType packageType,
+        String path,
+        String originUrl,
+        String localUrl,
+        DbStoreEffect storeEffect,
+        String md5,
+        String sha1,
+        String sha256,
+        Long size,
+        LocalDateTime timestamp) {
+}

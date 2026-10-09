@@ -4,11 +4,11 @@
  */
 package org.jboss.pnc.tracker.rest;
 
-import org.jboss.pnc.tracker.exception.ReportNotFoundException;
-
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+
+import org.jboss.pnc.tracker.exception.ReportNotFoundException;
 
 @Provider
 public class ReportNotFoundMapper implements ExceptionMapper<ReportNotFoundException> {

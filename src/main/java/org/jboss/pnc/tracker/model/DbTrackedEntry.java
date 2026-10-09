@@ -10,11 +10,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.hibernate.Session;
-import org.jboss.logging.Logger;
-
-import io.quarkus.hibernate.orm.panache.Panache;
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,12 +19,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import org.hibernate.Session;
+import org.jboss.logging.Logger;
+
+import io.quarkus.hibernate.orm.panache.Panache;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 @Entity
 @Table(
         name = "tracked_entry",
-        indexes = { @Index(name = "idx_timestamps", columnList = "timestamp"),
-                @Index(name = "idx_store_path_effect", columnList = "repository_id,path,store_effect")},
+        indexes = {
+                @Index(name = "idx_timestamps", columnList = "timestamp"),
+                @Index(name = "idx_store_path_effect", columnList = "repository_id,path,store_effect") },
         uniqueConstraints = @UniqueConstraint(
                 name = "uq_build_repo_operation_path",
                 columnNames = { "report_id", "repository_id", "store_effect", "path" }))
@@ -83,28 +84,30 @@ public class DbTrackedEntry extends PanacheEntity {
      * @return true in case of successful persist; false if a record with the trackingId does not exist or is sealed
      */
     public boolean persistIfActive() {
-        return getEntityManager().createNativeQuery("""
-            INSERT INTO tracked_entry
-                (id, report_id, repository_id, path, origin_url, local_url, store_effect, md5, sha1, sha256, size, timestamp)
-            SELECT
-                nextval('tracked_entry_SEQ'), r.id, :repositoryId, :path, :originUrl, :localUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
-            FROM tracking_report r
-            WHERE r.id = :reportId AND r.state = :reportState
-            ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
-            """)
-            .setParameter("reportId", this.report.id)
-            .setParameter("reportState", DbTrackingReportState.IN_PROGRESS.getDbCode())
-            .setParameter("repositoryId", this.repository.id)
-            .setParameter("path", this.path)
-            .setParameter("originUrl", this.originUrl)
-            .setParameter("localUrl", this.localUrl)
-            .setParameter("storeEffect", this.storeEffect.getDbCode())
-            .setParameter("md5", this.md5)
-            .setParameter("sha1", this.sha1)
-            .setParameter("sha256", this.sha256)
-            .setParameter("size", this.size)
-            .setParameter("timestamp", this.timestamp)
-            .executeUpdate() == 1; // when 1 is returned, it persisted successfully
+        return getEntityManager()
+                .createNativeQuery(
+                        """
+                                INSERT INTO tracked_entry
+                                    (id, report_id, repository_id, path, origin_url, local_url, store_effect, md5, sha1, sha256, size, timestamp)
+                                SELECT
+                                    nextval('tracked_entry_SEQ'), r.id, :repositoryId, :path, :originUrl, :localUrl, :storeEffect, :md5, :sha1, :sha256, :size, :timestamp
+                                FROM tracking_report r
+                                WHERE r.id = :reportId AND r.state = :reportState
+                                ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
+                                """)
+                .setParameter("reportId", this.report.id)
+                .setParameter("reportState", DbTrackingReportState.IN_PROGRESS.getDbCode())
+                .setParameter("repositoryId", this.repository.id)
+                .setParameter("path", this.path)
+                .setParameter("originUrl", this.originUrl)
+                .setParameter("localUrl", this.localUrl)
+                .setParameter("storeEffect", this.storeEffect.getDbCode())
+                .setParameter("md5", this.md5)
+                .setParameter("sha1", this.sha1)
+                .setParameter("sha256", this.sha256)
+                .setParameter("size", this.size)
+                .setParameter("timestamp", this.timestamp)
+                .executeUpdate() == 1; // when 1 is returned, it persisted successfully
     }
 
     /**
@@ -128,12 +131,12 @@ public class DbTrackedEntry extends PanacheEntity {
 
         return getEntityManager().unwrap(Session.class).doReturningWork(connection -> {
             String sql = """
-                INSERT INTO tracked_entry
-                    (id, report_id, repository_id, path, origin_url, local_url, store_effect, md5, sha1, sha256, size, timestamp)
-                VALUES
-                    (nextval('tracked_entry_SEQ'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
-                """;
+                    INSERT INTO tracked_entry
+                        (id, report_id, repository_id, path, origin_url, local_url, store_effect, md5, sha1, sha256, size, timestamp)
+                    VALUES
+                        (nextval('tracked_entry_SEQ'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT ON CONSTRAINT uq_build_repo_operation_path DO NOTHING
+                    """;
 
             int totalInserted = 0;
             int totalProcessed = 0;
@@ -171,7 +174,6 @@ public class DbTrackedEntry extends PanacheEntity {
 
                         int[] results = ps.executeBatch();
 
-
                         // Evaluating the rows in the batch
                         for (int j = 0; j < results.length; j++) {
                             DbTrackedEntry batchEntry = entries.get(batchStartIndex + j);
@@ -180,8 +182,10 @@ public class DbTrackedEntry extends PanacheEntity {
                             if (status == 1 || status == Statement.SUCCESS_NO_INFO) {
                                 totalInserted++;
                             } else if (status == 0) {
-                                logger.debugf("Skipped duplicate entry: path=%s, repositoryId=%d",
-                                        batchEntry.path, batchEntry.repository.id);
+                                logger.debugf(
+                                        "Skipped duplicate entry: path=%s, repositoryId=%d",
+                                        batchEntry.path,
+                                        batchEntry.repository.id);
                             }
                         }
 

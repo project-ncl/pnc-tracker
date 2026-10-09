@@ -4,6 +4,18 @@
  */
 package org.jboss.pnc.tracker.rest;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.pnc.api.dto.RepositoryId;
 import org.jboss.pnc.api.tracker.dto.PackageType;
 import org.jboss.pnc.api.tracker.dto.TrackDownloadRequest;
@@ -13,25 +25,12 @@ import org.jboss.pnc.api.tracker.dto.TrackedEntry;
 import org.jboss.pnc.api.tracker.dto.TrackingReport;
 import org.jboss.pnc.api.tracker.rest.ReportEndpoint;
 import org.jboss.pnc.tracker.model.DbPackageType;
+import org.jboss.pnc.tracker.model.DbStoreEffect;
 import org.jboss.pnc.tracker.model.DbTrackedEntry;
 import org.jboss.pnc.tracker.model.DbTrackingReport;
-import org.jboss.pnc.tracker.model.DbStoreEffect;
-import org.jboss.pnc.tracker.model.TrackedEntryProjection;
 import org.jboss.pnc.tracker.model.DbTrackingReportState;
+import org.jboss.pnc.tracker.model.TrackedEntryProjection;
 import org.jboss.pnc.tracker.service.ReportService;
-
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
-import jakarta.annotation.security.RolesAllowed;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 
 @Tag(name = "Tracking Report Access", description = "Manages tracking reports.")
 @ApplicationScoped
@@ -41,7 +40,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     ReportService reportService;
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-user", "pnc-users", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-user", "pnc-users", "pnc-users-admin" })
     public List<String> getAllIds(String strState) {
         DbTrackingReportState state = getRequiredState(strState);
         List<String> ids = reportService.getTrackingIds(state);
@@ -69,13 +68,13 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-report-admin", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-report-admin", "pnc-users-admin" })
     public void initReport(final String trackingId) {
         reportService.initReport(trackingId);
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-track", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-track", "pnc-users-admin" })
     public void trackUpload(String trackingId, TrackUploadRequest request) {
         DbTrackedEntry entry = mapToEntity(request);
         entry.storeEffect = DbStoreEffect.UPLOAD;
@@ -85,7 +84,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-track", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-track", "pnc-users-admin" })
     public void trackDownload(String trackingId, TrackDownloadRequest request) {
         DbTrackedEntry entry = mapToEntity(request);
         entry.originUrl = request.getOriginUrl();
@@ -114,13 +113,13 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-report-admin", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-report-admin", "pnc-users-admin" })
     public void sealReport(String trackingId) {
         reportService.sealReport(trackingId);
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-user", "pnc-users", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-user", "pnc-users", "pnc-users-admin" })
     public TrackingReport getReport(String trackingId) {
         DbTrackingReport report = reportService.getReport(trackingId);
 
@@ -135,14 +134,16 @@ public class ReportEndpointImpl implements ReportEndpoint {
     private TrackingReport buildDto(String trackingId, List<TrackedEntryProjection> entries) {
         TrackingReport dto = TrackingReport.builder()
                 .trackingID(trackingId)
-                .uploads(entries.stream()
-                        .filter(e -> e.storeEffect() == DbStoreEffect.UPLOAD)
-                        .map(this::toEntryDto)
-                        .collect(Collectors.toSet()))
-                .downloads(entries.stream()
-                        .filter(e -> e.storeEffect() == DbStoreEffect.DOWNLOAD)
-                        .map(this::toEntryDto)
-                        .collect(Collectors.toSet()))
+                .uploads(
+                        entries.stream()
+                                .filter(e -> e.storeEffect() == DbStoreEffect.UPLOAD)
+                                .map(this::toEntryDto)
+                                .collect(Collectors.toSet()))
+                .downloads(
+                        entries.stream()
+                                .filter(e -> e.storeEffect() == DbStoreEffect.DOWNLOAD)
+                                .map(this::toEntryDto)
+                                .collect(Collectors.toSet()))
                 .build();
 
         return dto;
@@ -186,7 +187,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-user", "pnc-users", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-user", "pnc-users", "pnc-users-admin" })
     public List<String> getUploadPaths(String trackingId) {
         DbTrackingReport report = reportService.getReport(trackingId);
 
@@ -203,7 +204,7 @@ public class ReportEndpointImpl implements ReportEndpoint {
     }
 
     @Override
-    @RolesAllowed({"pnc-app-tracker-report-clear", "pnc-users-admin"})
+    @RolesAllowed({ "pnc-app-tracker-report-clear", "pnc-users-admin" })
     public void clearReport(final String trackingId) {
         reportService.clearReport(trackingId);
     }
