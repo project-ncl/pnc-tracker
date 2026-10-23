@@ -41,7 +41,7 @@
     <quarkus.platform.version>3.40.1</quarkus.platform.version>
 
     <apiVersion>1</apiVersion>
-    <pnc-api.version>3.6.0-SNAPSHOT</pnc-api.version>
+    <pnc-api.version>3.99.0</pnc-api.version>
     <artifactory-client.version>2.22.3</artifactory-client.version>
 
     <jib.base.image.version>1.24-7</jib.base.image.version>
