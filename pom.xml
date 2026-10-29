@@ -17,7 +17,7 @@
 
   <groupId>org.jboss.pnc.tracker</groupId>
   <artifactId>pnc-tracker</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
 
   <name>PNC :: Tracker</name>
   <description>PNC Tracker</description>
