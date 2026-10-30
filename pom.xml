@@ -93,7 +93,7 @@
       <dependency>
         <groupId>org.wildfly.security</groupId>
         <artifactId>wildfly-elytron-asn1</artifactId>
-        <version>2.9.3.Final</version>
+        <version>2.9.4.Final</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
