@@ -17,7 +17,7 @@
 
   <groupId>org.jboss.pnc.tracker</groupId>
   <artifactId>pnc-tracker</artifactId>
-  <version>4.0.1</version>
+  <version>4.0.2-SNAPSHOT</version>
 
   <name>PNC :: Tracker</name>
   <description>PNC Tracker</description>
@@ -27,7 +27,7 @@
   <scm>
     <connection>scm:git:https://github.com/project-ncl/pnc-tracker</connection>
     <developerConnection>scm:git:https://github.com/project-ncl/pnc-tracker</developerConnection>
-    <tag>4.0.1</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/project-ncl/pnc-tracker</url>
   </scm>
 
