@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2022-2026 Red Hat, Inc.
+    SPDX-FileCopyrightText: Copyright © 2022 Red Hat, Inc.
     SPDX-License-Identifier: Apache-2.0
 
 -->
@@ -209,16 +209,22 @@
         <artifactId>license-maven-plugin</artifactId>
         <version>5.1.2</version>
         <configuration>
-          <header>license-header.txt</header>
-          <includes>
-            <include>pom.xml</include>
-            <include>src/main/java/**/*.java</include>
-            <include>src/test/java/**/*.java</include>
-          </includes>
-          <excludes>
-            <exclude>target/**</exclude>
-            <exclude>.mvn/**</exclude>
-          </excludes>
+          <licenseSets>
+            <licenseSet>
+              <inlineHeader><![CDATA[SPDX-FileCopyrightText: Copyright © ${project.inceptionYear} Red Hat, Inc.
+SPDX-License-Identifier: Apache-2.0
+]]></inlineHeader>
+              <includes>
+                <include>pom.xml</include>
+                <include>src/main/java/**/*.java</include>
+                <include>src/test/java/**/*.java</include>
+              </includes>
+              <excludes>
+                <exclude>target/**</exclude>
+                <exclude>.mvn/**</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
         </configuration>
         <executions>
           <execution>
